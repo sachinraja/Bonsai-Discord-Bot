@@ -1,3 +1,4 @@
+git+https://github.com/xCloudzx/Bonsai-Discord-Bot
 requests==2.24.0
 pymongo==3.11.0
 discord.py==1.4.1
