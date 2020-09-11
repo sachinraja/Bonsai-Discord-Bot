@@ -11,11 +11,11 @@ import requests
 from random import randint
 import asyncio
 from math import ceil
+
 # load token
 load_dotenv()
-TOKEN = os.environ['TOKEN']
-DBUSERNAME = os.environ['DBUSERNAME']
-DBPASS = os.environ['DBPASS']
+MONGODB_URI = os.environ['MONGODB_URI']
+
 # logging
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
@@ -23,13 +23,11 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-bot = commands.Bot(command_prefix='b!')
-
-# remove help command to add custom one
+bot = commands.AutoShardedBot(command_prefix='b!')
 bot.remove_command('help')
 
 # mongodb
-client = pymongo.MongoClient(f"mongodb+srv://{DBUSERNAME}:{DBPASS}@bonsai.ipxq2.mongodb.net/")
+client = pymongo.MongoClient(MONGODB_URI)
 db = client['bonsai']
 tree_col = db['trees']
 parts_col = db['parts']
@@ -137,7 +135,7 @@ async def on_ready():
     print(f'Logged in as {bot.user.name}')
 
 @bot.command(name='help')
-async def help(ctx):
+async def help_message(ctx):
 
     embed = discord.Embed(title='Help', color=65280)\
         .add_field(name="Argument Meanings", value="Part Type : base, trunk, or leafpattern.\nMember=optional : If you don't input a member here, it will default to yourself.")\
