@@ -15,6 +15,7 @@ from math import ceil
 # load token
 load_dotenv()
 MONGODB_URI = os.environ['MONGODB_URI']
+TOKEN = os.environ['TOKEN']
 
 # logging
 logger = logging.getLogger('discord')
