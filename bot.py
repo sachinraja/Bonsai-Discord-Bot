@@ -296,6 +296,9 @@ async def shop_parts(ctx, part_type, member : discord.Member = None):
 
     shop_message = await ctx.send(file=part_picture, embed=embed)
 
+    if len(all_parts) <= 1:
+        return
+    
     await shop_message.add_reaction('⬅️')
     await shop_message.add_reaction('➡️')
 
@@ -402,6 +405,9 @@ async def list_inventory(ctx, member : discord.Member = None):
 
     inventory_message = await ctx.send(embed=embed)
 
+    if len(user['inventory']) <= 25:
+        return
+    
     await inventory_message.add_reaction('⬅️')
     await inventory_message.add_reaction('➡️')
 
