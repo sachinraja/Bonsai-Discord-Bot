@@ -5,7 +5,6 @@ import os
 from PIL import Image
 from dotenv import load_dotenv
 import pymongo
-import never_sleep
 import base64
 from io import BytesIO
 import requests
