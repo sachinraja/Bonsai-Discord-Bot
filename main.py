@@ -11,7 +11,7 @@ from io import BytesIO
 import requests
 from random import randint
 import asyncio
-
+from math import ceil
 # load token
 load_dotenv()
 TOKEN = os.environ['TOKEN']
@@ -25,11 +25,17 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 bot = commands.Bot(command_prefix='b!')
+
+# remove help command to add custom one
+bot.remove_command('help')
+
+# mongodb
 client = pymongo.MongoClient(f"mongodb+srv://{DBUSERNAME}:{DBPASS}@bonsai.ipxq2.mongodb.net/")
 db = client['bonsai']
 tree_col = db['trees']
 parts_col = db['parts']
 
+# starter classes for storing
 class Tree():
 
     def __init__(self, base, trunk, leaf_pattern, background_color=(0, 0, 255)):
@@ -86,12 +92,12 @@ def create_tree_embed(user, author_name, input_tree_num, tree_num):
     return embed
 
 async def check_attachment(ctx, width, height):
-    # check for attachment
+    # check for attachment on message
     if len(ctx.message.attachments) == 0:
         await ctx.send("Attach a file ending with jpg, jpeg, or png.")
         return False
     
-    # check for correct extension
+    # check for correct extension on attachment
     pic_ext = ['.jpg', '.jpeg', '.png']
     match = False
     for ext in pic_ext:
@@ -128,7 +134,47 @@ code_matchings = {'base' : 'base', 'trunk' : 'trunk', 'leafpattern' : 'leaf_patt
 
 @bot.event
 async def on_ready():
+    
     print(f'Logged in as {bot.user.name}')
+
+@bot.command(name='help')
+async def help(ctx):
+
+    embed = discord.Embed(title='Help', color=65280)\
+        .add_field(name="Argument Meanings", value="Part Type : base, trunk, or leafpattern.\nMember=optional : If you don't input a member here, it will default to yourself.")\
+        .add_field(name="b!balance [Member=optional]", value="Shows your balance or the balance of someone else.", inline=False)\
+        .add_field(name="b!buy [Part Name] [Member]", value="Buy a part from a member.", inline=False)\
+        .add_field(name="b!daily", value="Claim your daily reward ($50-$100).", inline=False)\
+        .add_field(name="b!help", value="Displays this message.", inline=False)\
+        .add_field(name="b!inventory [Member=optional]", value="Displays all the parts in your inventory and their corresponding inventory number.", inline=False)\
+        .add_field(name="b!list [Part Type] [Part Name <= 20] [List Price > 0]", value="List a part for sale. This must have an attached image to use for the part. Bases must be 15 x 3. Trunks must be 15 x 12. Leaf Patterns must be 15 x 12.", inline=False)\
+        .add_field(name="b!replace [1 <= Tree Number >= 3] [Inventory Number]", value="Replace a part on a tree with one in your inventory.", inline=False)\
+        .add_field(name="b!replacecolor [1 <= Tree Number >= 3] [Color Hex Code]", value="Replace the background color of a tree.", inline=False)\
+        .add_field(name="b!reset [1 <= Tree Number >= 3]", value="Reset a tree to defaults.", inline=False)\
+        .add_field(name="b!shop [Part Type] [Member=optional]", value="Show all the parts that Member has listed as Part Type.", inline=False)\
+        .add_field(name="b!tree [1 <= Tree Number >= 3]", value="Displays the tree.", inline=False)
+        
+    await ctx.send(embed=embed)
+
+@bot.command(name='tree')
+async def display_tree(ctx, input_tree_num : int):
+
+    if input_tree_num < 1 or input_tree_num > 3:
+        await ctx.send('Enter a number from 1 to 3.')
+        return
+
+    tree_num = input_tree_num - 1
+
+    user = tree_col.find_one({'user_id' : ctx.author.id})
+    
+    if user == None:
+        user = User(ctx.author.id, default_trees).__dict__
+        tree_col.insert_one(user)
+
+    im_tree = create_tree_image(user, tree_num)
+    embed = create_tree_embed(user, ctx.author.name, input_tree_num, tree_num)
+
+    await ctx.send(file=im_tree, embed=embed)
 
 @bot.command(name='reset')
 async def reset_tree(ctx, input_tree_num : int):
@@ -155,33 +201,17 @@ async def reset_tree(ctx, input_tree_num : int):
     
     await ctx.send(file=im_tree, embed=embed)
 
-@bot.command(name='tree')
-async def display_tree(ctx, input_tree_num : int):
-
-    if input_tree_num < 1 or input_tree_num > 3:
-        await ctx.send('Enter a number from 1 to 3.')
-        return
-
-    tree_num = input_tree_num - 1
-
-    user = tree_col.find_one({'user_id' : ctx.author.id})
-    
-    if user == None:
-        user = User(ctx.author.id, default_trees).__dict__
-        tree_col.insert_one(user)
-
-    im_tree = create_tree_image(user, tree_num)
-    embed = create_tree_embed(user, ctx.author.name, input_tree_num, tree_num)
-
-    await ctx.send(file=im_tree, embed=embed)
-    
 @bot.command(name="list")
 async def upload(ctx, part_type, part_name, list_price : int):
     
     if part_type not in valid_parts:
         await ctx.send("Enter base, trunk, or leafpattern.")
         return
-        
+    
+    if len(part_name) > 20:
+        await ctx.send("Part Name cannot be over 20 characters long.")
+        return
+    
     if list_price < 0:
         await ctx.send("List price cannot be less than 0.")
         return
@@ -206,8 +236,8 @@ async def upload(ctx, part_type, part_name, list_price : int):
 
     parts = user['parts']
 
-    if len(parts) >= 5:
-        await ctx.send(f"You have exceeded your limit of 5 parts.")
+    if len(parts) >= 10:
+        await ctx.send(f"You have exceeded your limit of 10 parts.")
         return
 
     for part in parts:
@@ -221,7 +251,7 @@ async def upload(ctx, part_type, part_name, list_price : int):
 
     parts_col.update_one({'user_id' : ctx.author.id}, {'$set' : user})
 
-    im_trunk = binary_to_embed(file_request.content)
+    im_part = binary_to_embed(file_request.content)
 
     embed = discord.Embed(title=f'New {part_type} Listing', color=255)\
         .set_author(name= ctx.author.name)\
@@ -229,7 +259,7 @@ async def upload(ctx, part_type, part_name, list_price : int):
         .add_field(name='List Price', value=list_price)\
         .set_image(url='attachment://image.png')
 
-    await ctx.send(file=im_trunk, embed=embed)
+    await ctx.send(file=im_part, embed=embed)
 
 @bot.command(name="shop")
 async def shop_parts(ctx, part_type, member : discord.Member = None):
@@ -246,9 +276,7 @@ async def shop_parts(ctx, part_type, member : discord.Member = None):
     if seller == None:
         await ctx.send(f"{member} has nothing in their shop.")
         return
-    
-    i = 0
-
+        
     all_parts = seller['parts']
     
     parts = []
@@ -369,12 +397,62 @@ async def list_inventory(ctx, member : discord.Member = None):
     embed = discord.Embed(title=f"{member}'s Inventory", color=255)
     
     i = 1
-    for part in user['inventory']:
+    for part in user['inventory'][:26]:
         embed = embed.add_field(name=part['part_info']['type'], value=f"{i} : {part['creator']}'s {part['part_info']['name']}", inline=False)
 
         i += 1
 
-    await ctx.send(embed=embed)
+    inventory_message = await ctx.send(embed=embed)
+
+    await inventory_message.add_reaction('⬅️')
+    await inventory_message.add_reaction('➡️')
+
+    def check(reaction, user):
+        return reaction.message.id == inventory_message.id and user.id == ctx.author.id and str(reaction.emoji) in ['⬅️', '➡️']
+
+    total_part_lists = ceil(len(user['inventory']) / 25)
+    current_part_list = 1
+
+    while True:
+        try:
+            reaction, reaction_user = await bot.wait_for('reaction_add', check=check, timeout=300)
+
+            # check for arrow reactions
+            if str(reaction.emoji) == '⬅️' and current_part_list > 1:
+                current_part_list -= 1
+
+                inventory_index_first = (current_part_list - 1) * 25;
+                inventory_index_last = (current_part_list * 25) + 1;
+
+                embed = discord.Embed(title=f"{member}'s Inventory Page {current_part_list}", color=255)
+                
+                j = inventory_index_first
+                for part in user['inventory'][inventory_index_first:inventory_index_last]:
+                    embed = embed.add_field(name=part['part_info']['type'], value=f"{j+1} : {part['creator']}'s {part['part_info']['name']}", inline=False)
+                    j += 1
+
+                await inventory_message.edit(embed=embed)
+                await inventory_message.remove_reaction(reaction, reaction_user)
+
+            elif str(reaction.emoji) == '➡️' and current_part_list < total_part_lists:
+                current_part_list += 1
+
+                inventory_index_first = (current_part_list - 1) * 25;
+                inventory_index_last = (current_part_list * 25) + 1;
+                print(inventory_index_first, inventory_index_last)
+                
+                embed = discord.Embed(title=f"{member}'s Inventory Page {current_part_list}", color=255)
+                
+                j = inventory_index_first
+                for part in user['inventory'][inventory_index_first:inventory_index_last]:
+                    embed = embed.add_field(name=part['part_info']['type'], value=f"{j+1} : {part['creator']}'s {part['part_info']['name']}", inline=False)
+                    j += 1
+
+                await inventory_message.edit(embed=embed)
+                await inventory_message.remove_reaction(reaction, reaction_user)
+
+        except asyncio.TimeoutError:
+            break
 
 @bot.command(name="replace")
 async def replace_part(ctx, input_tree_num : int, input_inventory_num : int):
@@ -393,7 +471,7 @@ async def replace_part(ctx, input_tree_num : int, input_inventory_num : int):
     inventory_num = input_inventory_num - 1
 
     # check for proper inventory number
-    if inventory_num <= 0:
+    if input_inventory_num <= 0:
         await ctx.send(f'Inventory numbers must be over 0.')
         return
     
@@ -417,6 +495,7 @@ async def replace_part(ctx, input_tree_num : int, input_inventory_num : int):
 
 @bot.command(name="replacecolor")
 async def replace_color(ctx, input_tree_num : int, hex_code):
+    
     if input_tree_num < 1 or input_tree_num > 3:
         await ctx.send('Enter a number from 1 to 3.')
         return
@@ -434,8 +513,14 @@ async def replace_color(ctx, input_tree_num : int, hex_code):
         tree_col.insert_one(user)
     
     # convert to rgb
-    h = hex_code.lstrip('#')
-    user['trees'][tree_num]['background_color'] = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+    try:
+        h = hex_code.lstrip('#')
+        user['trees'][tree_num]['background_color'] = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+    
+    except:
+        await ctx.send(f"{hex_code} is not valid.")
+        return
+    
     tree_col.update_one({'user_id' : ctx.author.id}, {'$set' : user})
 
     im_tree = create_tree_image(user, tree_num)
@@ -481,5 +566,4 @@ async def check_balance(ctx, member : discord.Member = None):
     
     await ctx.send(f"{member} has ${user['balance']}.")
 
-# never_sleep.awake('https://Bonsai-Discord-Bot.xcloudzx.repl.co', False)
 bot.run(TOKEN)
