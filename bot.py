@@ -5,14 +5,13 @@ import os
 from PIL import Image
 from dotenv import load_dotenv
 import pymongo
-import base64
 from io import BytesIO
 import requests
 from random import randint
 import asyncio
 from math import ceil
 
-# load token
+# load environmental variables
 load_dotenv()
 MONGODB_URI = os.environ['MONGODB_URI']
 TOKEN = os.environ['TOKEN']
@@ -51,10 +50,13 @@ class User():
 
 def create_tree_image(user, tree_num):
     # save with BytesIO and then paste to image
-    base_image = Image.open(BytesIO(user['trees'][tree_num]['base']['part_info']['image']))
-    trunk_image = Image.open(BytesIO(user['trees'][tree_num]['trunk']['part_info']['image']))
-    leaf_pattern_image = Image.open(BytesIO(user['trees'][tree_num]['leaf_pattern']['part_info']['image']))
-    tree_image = Image.new("RGB", (15, 15), tuple(user['trees'][tree_num]['background_color']))
+    tree_to_display = user['trees'][tree_num]
+    
+    base_image = Image.open(BytesIO(tree_to_display['base']['part_info']['image']))
+    trunk_image = Image.open(BytesIO(tree_to_display['trunk']['part_info']['image']))
+    leaf_pattern_image = Image.open(BytesIO(tree_to_display['leaf_pattern']['part_info']['image']))
+    
+    tree_image = Image.new("RGB", (15, 15), tuple(tree_to_display['background_color']))
     tree_image.paste(base_image, (0, 12), mask=base_image)
     tree_image.paste(trunk_image, mask=trunk_image)
     tree_image.paste(leaf_pattern_image, mask=leaf_pattern_image)
@@ -133,7 +135,7 @@ code_matchings = {'base' : 'base', 'trunk' : 'trunk', 'leafpattern' : 'leaf_patt
 @bot.event
 async def on_ready():
     
-    print(f'Logged in as {bot.user.name}')
+    print(f'Logged in as {bot.user}')
 
 @bot.command(name='help')
 async def help_message(ctx):
@@ -145,12 +147,14 @@ async def help_message(ctx):
         .add_field(name="b!daily", value="Claim your daily reward ($50-$100).", inline=False)\
         .add_field(name="b!help", value="Displays this message.", inline=False)\
         .add_field(name="b!inventory [Member=optional]", value="Displays all the parts in your inventory and their corresponding inventory number.", inline=False)\
-        .add_field(name="b!list [Part Type] [Part Name <= 20] [List Price > 0]", value="List a part for sale. This must have an attached image to use for the part. Bases must be 15 x 3. Trunks must be 15 x 12. Leaf Patterns must be 15 x 12.", inline=False)\
+        .add_field(name="b!list [Part Type] [Part Name <= 20 characters] [List Price > 0]", value="List a part for sale. This must have an attached image to use for the part. Bases must be 15 x 3. Trunks must be 15 x 12. Leaf Patterns must be 15 x 12.", inline=False)\
+        .add_field(name="b!removeinventory [Inventory Number]", value="Remove a part from your inventory (does not refund any money).", inline=False)\
         .add_field(name="b!replace [1 <= Tree Number >= 3] [Inventory Number]", value="Replace a part on a tree with one in your inventory.", inline=False)\
         .add_field(name="b!replacecolor [1 <= Tree Number >= 3] [Color Hex Code]", value="Replace the background color of a tree.", inline=False)\
         .add_field(name="b!reset [1 <= Tree Number >= 3]", value="Reset a tree to defaults.", inline=False)\
         .add_field(name="b!shop [Part Type] [Member=optional]", value="Show all the parts that Member has listed as Part Type.", inline=False)\
-        .add_field(name="b!tree [1 <= Tree Number >= 3]", value="Displays the tree.", inline=False)
+        .add_field(name="b!tree [1 <= Tree Number >= 3]", value="Displays the tree.", inline=False)\
+        .add_field(name="b!unlist [Part Name]", value="Remove a part listed in your shop.", inline=False)
         
     await ctx.send(embed=embed)
 
@@ -200,7 +204,7 @@ async def reset_tree(ctx, input_tree_num : int):
     await ctx.send(file=im_tree, embed=embed)
 
 @bot.command(name="list")
-async def upload(ctx, part_type, part_name, list_price : int):
+async def create_part_listing(ctx, part_type, part_name, list_price : int):
     
     if part_type not in valid_parts:
         await ctx.send("Enter base, trunk, or leafpattern.")
@@ -234,7 +238,7 @@ async def upload(ctx, part_type, part_name, list_price : int):
 
     parts = user['parts']
 
-    if len(parts) >= 10:
+    if len(parts) >= 15:
         await ctx.send(f"You have exceeded your limit of 10 parts.")
         return
 
@@ -259,6 +263,33 @@ async def upload(ctx, part_type, part_name, list_price : int):
 
     await ctx.send(file=im_part, embed=embed)
 
+@bot.command("unlist")
+async def delete_part_listing(ctx, part_name):
+    user = parts_col.find_one({'user_id' : ctx.author.id})
+    
+    if user == None:
+        await ctx.send("You don't have any parts listed.")
+        return
+    
+    i = 0
+    part_for_removal = None
+    for part in user['parts']:
+
+        if part['name'].lower() == part_name.lower():
+            part_for_removal = part['name']
+            break
+        
+        i += 1
+    
+    if part_for_removal == None:
+        await ctx.send(f"Could not find part {part_name}.")
+        return
+    
+    user['parts'].pop(i)
+    parts_col.update_one({'user_id' : ctx.author.id}, {'$set' : user})
+
+    await ctx.send(f"Removed part {part_for_removal}.")
+    
 @bot.command(name="shop")
 async def shop_parts(ctx, part_type, member : discord.Member = None):
     
@@ -269,68 +300,68 @@ async def shop_parts(ctx, part_type, member : discord.Member = None):
     if member == None:
         member = ctx.author
     
-    seller = parts_col.find_one({'user_id' : member.id})
+    seller = parts_col.find_one({"user_id" : member.id})
     
     if seller == None:
-        await ctx.send(f"{member} has nothing in their shop.")
+        await ctx.send(f"{member} has no parts listed.")
         return
         
-    all_parts = seller['parts']
+    all_parts = seller["parts"]
     
     parts = []
     for p in all_parts:
-        if p['type'] == part_type:
+        if p["type"] == part_type:
             parts.append(p)
     
     if parts == []:
-        await ctx.send(f"{seller} has no {part_type}s.")
+        await ctx.send(f"{member} has no {part_type}s listed.")
         return
 
-    part_picture = binary_to_embed(parts[0]['image'])
+    part_picture = binary_to_embed(parts[0]["image"])
 
     embed = discord.Embed(title=f"{parts[0]['type']} Listing 1", color=255)\
         .set_author(name=member.name)\
-        .add_field(name='Name', value=parts[0]['name'])\
-        .add_field(name='List Price', value=parts[0]['price'])\
-        .set_image(url='attachment://image.png')
+        .add_field(name="Name", value=parts[0]["name"])\
+        .add_field(name="List Price", value=parts[0]["price"])\
+        .set_image(url="attachment://image.png")
 
     shop_message = await ctx.send(file=part_picture, embed=embed)
 
     if len(all_parts) <= 1:
         return
     
-    await shop_message.add_reaction('⬅️')
-    await shop_message.add_reaction('➡️')
+    await shop_message.add_reaction("⬅️")
+    await shop_message.add_reaction("➡️")
 
     def check(reaction, user):
-        return reaction.message.id == shop_message.id and user.id == ctx.author.id and str(reaction.emoji) in ['⬅️', '➡️']
+        return reaction.message.id == shop_message.id and user.id == ctx.author.id and str(reaction.emoji) in ["⬅️", "➡️"]
 
     total_parts = len(parts) - 1
     current_part = 0
 
     while True:
         try:
-            reaction, user = await bot.wait_for('reaction_add', check=check, timeout=300)
+            reaction, user = await bot.wait_for("reaction_add", check=check, timeout=300)
 
             # check for arrow reactions
-            if str(reaction.emoji) == '⬅️' and current_part != 0:
+            if str(reaction.emoji) == "⬅️" and current_part != 0:
                 current_part -= 1
 
-                part_picture = binary_to_embed(parts[current_part]['image'])
+                part_picture = binary_to_embed(parts[current_part]["image"])
 
                 embed = discord.Embed(title=f"{parts[current_part]['type']} Listing {current_part + 1}", color=255)\
                     .set_author(name=member.name)\
-                    .add_field(name='Name', value=parts[current_part]['name'])\
-                    .add_field(name='List Price', value=parts[current_part]['price'])\
-                    .set_image(url='attachment://image.png')
+                    .add_field(name="Name", value=parts[current_part]["name"])\
+                    .add_field(name="List Price", value=parts[current_part]["price"])\
+                    .set_image(url="attachment://image.png")
 
                 await shop_message.edit(embed=embed)
                 await shop_message.remove_reaction(reaction, user)
 
-            elif str(reaction.emoji) == '➡️' and current_part != total_parts:
+            elif str(reaction.emoji) == "➡️" and current_part != total_parts:
                 current_part += 1
 
-                part_picture = binary_to_embed(parts[current_part]['image'])
+                part_picture = binary_to_embed(parts[current_part]["image"])
 
                 embed = discord.Embed(title=f"{parts[current_part]['type']} Listing {current_part + 1}", color=255)\
                     .set_author(name=member.name)\
@@ -353,10 +384,14 @@ async def buy_part(ctx, part_name, member : discord.Member):
         user = User(ctx.author.id, default_trees).__dict__
         tree_col.insert_one(user)
 
+    if len(user['inventory']) >= 100:
+        await ctx.send("You have reached the limit of 100 parts in your inventory.")
+        return
+    
     seller = parts_col.find_one({'user_id' : member.id})
 
     if seller == None:
-        await ctx.send(f"{member} has nothing in their shop.")
+        await ctx.send(f"{member} has no parts listed.")
         return
 
     # get correct spelling of list in seller
@@ -395,6 +430,10 @@ async def list_inventory(ctx, member : discord.Member = None):
     
     user = tree_col.find_one({'user_id' : member.id})
 
+    if user == None:
+        ctx.send(f"{member} has no parts in their inventory.")
+        return
+
     embed = discord.Embed(title=f"{member}'s Inventory", color=255)
     
     i = 1
@@ -405,6 +444,7 @@ async def list_inventory(ctx, member : discord.Member = None):
 
     inventory_message = await ctx.send(embed=embed)
 
+    # only one page needs to be displayed
     if len(user['inventory']) <= 25:
         return
     
@@ -425,8 +465,8 @@ async def list_inventory(ctx, member : discord.Member = None):
             if str(reaction.emoji) == '⬅️' and current_part_list > 1:
                 current_part_list -= 1
 
-                inventory_index_first = (current_part_list - 1) * 25;
-                inventory_index_last = (current_part_list * 25) + 1;
+                inventory_index_first = (current_part_list - 1) * 25
+                inventory_index_last = (current_part_list * 25) + 1
 
                 embed = discord.Embed(title=f"{member}'s Inventory Page {current_part_list}", color=255)
                 
@@ -441,9 +481,8 @@ async def list_inventory(ctx, member : discord.Member = None):
             elif str(reaction.emoji) == '➡️' and current_part_list < total_part_lists:
                 current_part_list += 1
 
-                inventory_index_first = (current_part_list - 1) * 25;
-                inventory_index_last = (current_part_list * 25) + 1;
-                print(inventory_index_first, inventory_index_last)
+                inventory_index_first = (current_part_list - 1) * 25
+                inventory_index_last = (current_part_list * 25) + 1
                 
                 embed = discord.Embed(title=f"{member}'s Inventory Page {current_part_list}", color=255)
                 
@@ -458,6 +497,30 @@ async def list_inventory(ctx, member : discord.Member = None):
         except asyncio.TimeoutError:
             break
 
+@bot.command(name="removeinventory")
+async def delete_inventory_part(ctx, input_inventory_num : int):
+    user = tree_col.find_one({'user_id' : ctx.author.id})
+    
+    if user == None:
+        await ctx.send(f'There is no part at inventory #{input_inventory_num}.')
+        return
+    
+    inventory_num = input_inventory_num - 1
+
+    # check for proper inventory number
+    if input_inventory_num <= 0:
+        await ctx.send(f'Inventory numbers must be over 0.')
+        return
+    
+    elif len(user['inventory']) - 1 < inventory_num:
+        await ctx.send(f"Your inventory only goes up to {len(user['inventory'])}, but you entered #{input_inventory_num}.")
+        return
+    
+    user['inventory'].pop(inventory_num)
+    tree_col.update_one({'user_id' : ctx.author.id}, {'$set' : user})
+
+    await ctx.send(f"Part at #{input_inventory_num} has been removed.")
+    
 @bot.command(name="replace")
 async def replace_part(ctx, input_tree_num : int, input_inventory_num : int):
     if input_tree_num < 1 or input_tree_num > 3:
@@ -474,7 +537,6 @@ async def replace_part(ctx, input_tree_num : int, input_inventory_num : int):
     
     inventory_num = input_inventory_num - 1
 
-    # check for proper inventory number
     if input_inventory_num <= 0:
         await ctx.send(f'Inventory numbers must be over 0.')
         return
@@ -565,8 +627,7 @@ async def check_balance(ctx, member : discord.Member = None):
     user = tree_col.find_one({'user_id' : member.id})
     
     if user == None:
-        user = User(ctx.author.id, default_trees).__dict__
-        tree_col.insert_one(user)
+        await ctx.send(f"{member} has $200.")
     
     await ctx.send(f"{member} has ${user['balance']}.")
 
