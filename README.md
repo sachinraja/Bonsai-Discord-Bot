@@ -12,11 +12,9 @@
 </a>
 
 <h2>Links</h2>
-<hr>
 <a href="https://discord.com/api/oauth2/authorize?client_id=743898864926589029&permissions=8192&scope=bot">Add Bot to Server</a>
 
 <h2>Usage</h2>
-<hr>
 <h3>Argument Meanings</h3>
 <p>Part Type: base, trunk, or leafpattern.</p>
 <p>Member=optional: If you don't input a member here, it will default to yourself.</p>
