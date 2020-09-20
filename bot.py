@@ -82,19 +82,6 @@ def binary_to_embed(binary):
         im_part = discord.File(fp=image_binary, filename='image.png')
         return im_part
 
-def multiple_binary_to_embed(binary_list, image_name):
-    files = []
-    for i, binary in enumerate(binary_list):
-        part_image = Image.open(BytesIO(binary))
-        part_image = part_image.resize((part_image.size[0] * 10, part_image.size[1] * 10), Image.NEAREST)
-
-        with BytesIO() as image_binary:
-            part_image.save(image_binary, 'PNG')
-            image_binary.seek(0)
-            files.append(discord.File(fp=image_binary, filename=f'{image_name}{i}.png'))
-    
-    return files
-    
 def create_tree_embed(user, author_name, input_tree_num, tree_num):
     embed = discord.Embed(title=f'Tree {input_tree_num}', color=25600)\
         .set_author(name=author_name)\
