@@ -325,7 +325,7 @@ async def shop_parts(ctx, part_type, member : discord.Member = None):
     
     shop_message = await ctx.send(file=part_picture, embed=embed)
 
-    if len(all_parts) <= 1:
+    if len(parts) <= 1:
         return
     
     await shop_message.add_reaction("⬅️")
