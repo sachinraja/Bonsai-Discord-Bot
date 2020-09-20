@@ -214,8 +214,8 @@ async def create_part_listing(ctx, part_type, part_name, list_price : int):
         await ctx.send("Part Name cannot be over 20 characters long.")
         return
     
-    if list_price < 0:
-        await ctx.send("List price cannot be less than 0.")
+    if list_price < 0 or list_price > 10000:
+        await ctx.send("List price cannot be less than $0 or over $10,000.")
         return
     
     if part_type == 'base' and await check_attachment(ctx, 15, 3) == False:
