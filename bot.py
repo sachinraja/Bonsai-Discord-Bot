@@ -10,7 +10,6 @@ import requests
 from random import randint
 import asyncio
 from math import ceil
-import pyperclip
 
 # load environmental variables
 load_dotenv()
