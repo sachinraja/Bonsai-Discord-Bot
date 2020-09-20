@@ -10,6 +10,7 @@ import requests
 from random import randint
 import asyncio
 from math import ceil
+import pyperclip
 
 # load environmental variables
 load_dotenv()
@@ -81,6 +82,19 @@ def binary_to_embed(binary):
         im_part = discord.File(fp=image_binary, filename='image.png')
         return im_part
 
+def multiple_binary_to_embed(binary_list, image_name):
+    files = []
+    for i, binary in enumerate(binary_list):
+        part_image = Image.open(BytesIO(binary))
+        part_image = part_image.resize((part_image.size[0] * 10, part_image.size[1] * 10), Image.NEAREST)
+
+        with BytesIO() as image_binary:
+            part_image.save(image_binary, 'PNG')
+            image_binary.seek(0)
+            files.append(discord.File(fp=image_binary, filename=f'{image_name}{i}.png'))
+    
+    return files
+    
 def create_tree_embed(user, author_name, input_tree_num, tree_num):
     embed = discord.Embed(title=f'Tree {input_tree_num}', color=25600)\
         .set_author(name=author_name)\
@@ -203,7 +217,7 @@ async def reset_tree(ctx, input_tree_num : int):
     
     await ctx.send(file=im_tree, embed=embed)
 
-@bot.command(name="list")
+@bot.command(name='list')
 async def create_part_listing(ctx, part_type, part_name, list_price : int):
     
     if part_type not in valid_parts:
@@ -218,13 +232,11 @@ async def create_part_listing(ctx, part_type, part_name, list_price : int):
         await ctx.send("List price cannot be less than 0.")
         return
     
-    if part_type == 'base':
-        if await check_attachment(ctx, 15, 3) == False:
-            return
+    if part_type == 'base' and await check_attachment(ctx, 15, 3) == False:
+        return
 
-    elif part_type in ['trunk', 'leafpattern']:
-        if await check_attachment(ctx, 15, 12) == False:
-            return
+    elif part_type in ['trunk', 'leafpattern'] and await check_attachment(ctx, 15, 12) == False:
+        return
 
     user = parts_col.find_one({'user_id' : ctx.author.id})
     
@@ -290,7 +302,7 @@ async def delete_part_listing(ctx, part_name):
 
     await ctx.send(f"Removed part {part_for_removal}.")
     
-@bot.command(name="shop")
+@bot.command(name='shop')
 async def shop_parts(ctx, part_type, member : discord.Member = None):
     
     if part_type not in valid_parts:
@@ -317,14 +329,14 @@ async def shop_parts(ctx, part_type, member : discord.Member = None):
         await ctx.send(f"{member} has no {part_type}s listed.")
         return
 
-    part_picture = binary_to_embed(parts[0]["image"])
+    part_picture = binary_to_embed(parts[0]['image'])
 
     embed = discord.Embed(title=f"{parts[0]['type']} Listing 1", color=255)\
         .set_author(name=member.name)\
         .add_field(name="Name", value=parts[0]["name"])\
         .add_field(name="List Price", value=parts[0]["price"])\
         .set_image(url="attachment://image.png")
-
+    
     shop_message = await ctx.send(file=part_picture, embed=embed)
 
     if len(all_parts) <= 1:
@@ -346,31 +358,35 @@ async def shop_parts(ctx, part_type, member : discord.Member = None):
             # check for arrow reactions
             if str(reaction.emoji) == "⬅️" and current_part != 0:
                 current_part -= 1
-
-                part_picture = binary_to_embed(parts[current_part]["image"])
+                
+                part_picture = binary_to_embed(parts[current_part]['image'])
 
                 embed = discord.Embed(title=f"{parts[current_part]['type']} Listing {current_part + 1}", color=255)\
                     .set_author(name=member.name)\
                     .add_field(name="Name", value=parts[current_part]["name"])\
                     .add_field(name="List Price", value=parts[current_part]["price"])\
-                    .set_image(url="attachment://image.png")
-
-                await shop_message.edit(embed=embed)
-                await shop_message.remove_reaction(reaction, user)
+                    .set_image(url=f"attachment://image.png")
+                
+                await shop_message.delete()
+                shop_message = await ctx.send(file=part_picture, embed=embed)
+                await shop_message.add_reaction("⬅️")
+                await shop_message.add_reaction("➡️")
 
             elif str(reaction.emoji) == "➡️" and current_part != total_parts:
                 current_part += 1
 
-                part_picture = binary_to_embed(parts[current_part]["image"])
+                part_picture = binary_to_embed(parts[current_part]['image'])
 
                 embed = discord.Embed(title=f"{parts[current_part]['type']} Listing {current_part + 1}", color=255)\
                     .set_author(name=member.name)\
-                    .add_field(name='Name', value=parts[current_part]['name'])\
-                    .add_field(name='List Price', value=parts[current_part]['price'])\
-                    .set_image(url='attachment://image.png')
+                    .add_field(name="Name", value=parts[current_part]["name"])\
+                    .add_field(name="List Price", value=parts[current_part]["price"])\
+                    .set_image(url=f"attachment://image.png")
 
-                await shop_message.edit(embed=embed)
-                await shop_message.remove_reaction(reaction, user)
+                await shop_message.delete()
+                shop_message = await ctx.send(file=part_picture, embed=embed)
+                await shop_message.add_reaction("⬅️")
+                await shop_message.add_reaction("➡️")
 
         except asyncio.TimeoutError:
             break
