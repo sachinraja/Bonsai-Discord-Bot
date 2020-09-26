@@ -15,7 +15,7 @@
 <a href="https://discord.com/api/oauth2/authorize?client_id=743898864926589029&permissions=8192&scope=bot">Add Bot to Server</a>
 
 <h2>Usage</h2>
-<h3>Argument Meanings</h3>
+<h3>Argument Definitions</h3>
 <p>Part Type: base, trunk, or leafpattern.</p>
 <p>Member=optional: If you don't input a member here, it will default to yourself.</p>
 <hr width="50%" align="left">
@@ -25,9 +25,10 @@
 <p>b!daily: Claim your daily reward ($50-$100).</p>
 <p>b!help: Displays the help message with the list of commands.</p>
 <p>b!inventory [Member=optional]: Displays all the parts in your inventory and their corresponding inventory number.</p>
-<p>b!list [Part Type] [Part Name <= 20] [List Price > 0]: List a part for sale. This must have an attached image to use for the part. Bases must be 15 x 3. Trunks must be 15 x 12. Leaf Patterns must be 15 x 12.</p>
-<p>b!replace [1 <= Tree Number >= 3] [Inventory Number]: Replace a part on a tree with one in your inventory.</p>
-<p>b!replacecolor [1 <= Tree Number >= 3] [Color Hex Code]: Replace the background color of a tree.</p>
-<p>b!reset [1 <= Tree Number >= 3]: Reset a tree to defaults.</p>
+<p>b!list [Part Type] [Part Name <= 20] [0 < List Price < 10000]: List a part for sale. This must have an attached image to use for the part. Bases must be 15 x 3. Trunks must be 15 x 12. Leaf Patterns must be 15 x 12.</p>
+<p>b!replace [1 <= Tree Number <= 3] [Inventory Number]: Replace a part on a tree with one in your inventory.</p>
+<p>b!replacecolor [1 <= Tree Number <= 3] [Color Hex Code]: Replace the background color of a tree.</p>
+<p>b!reset [1 <= Tree Number <= 3]: Reset a tree to defaults.</p>
 <p>b!shop [Part Type] [Member=optional]: Show all the parts that Member has listed as Part Type.</p>
-<p>b!tree [1 <= Tree Number >= 3]: Displays the tree.</p>
+<p>b!tree [1 <= Tree Number <= 3]: Displays the tree.</p>
+<p>b!unlist [Part Name]: Remove a part listed in your shop.</p>
