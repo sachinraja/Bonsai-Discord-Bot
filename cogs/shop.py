@@ -77,6 +77,7 @@ class Shop(commands.Cog):
     async def create_part_listing(self, ctx, part_type, part_name, list_price : int):
         """List a part on the player's shop."""
 
+        part_type = part_type.lower()
         if part_type not in valid_parts:
             await ctx.send("Enter base, trunk, or leafpattern.")
             return
@@ -158,6 +159,7 @@ class Shop(commands.Cog):
     async def shop_parts(self, ctx, part_type, member : discord.Member = None):
         """View all the parts in a player's shop."""
 
+        part_type = part_type.lower()
         if part_type not in valid_parts:
             await ctx.send("Enter base, trunk, or leafpattern.")
             return
