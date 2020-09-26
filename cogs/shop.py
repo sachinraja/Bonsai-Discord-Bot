@@ -26,15 +26,15 @@ default_trunk = None
 with open("default_trunk.png", "rb") as imageFile:
     default_trunk = imageFile.read()
 
-default_leaf_pattern = None
-with open("default_leaf_pattern.png", "rb") as imageFile:
-    default_leaf_pattern = imageFile.read()
+default_leaves = None
+with open("default_leaves.png", "rb") as imageFile:
+    default_leaves = imageFile.read()
 
-default_tree = {"base" : {"image" : default_base, "name" : "Default Base", "price" : 0, "creator" : "Default"}, "trunk" : {"image" : default_trunk, "name" : "Default Trunk", "price" : 0, "creator" : "Default"}, "leafpattern" : {"image" : default_leaf_pattern, "name" : "Default Leaf Pattern", "price" : 0, "creator" : "Default"}, "background_color" : (0, 0, 255)}
+default_tree = {"base" : {"image" : default_base, "name" : "Default Base", "price" : 0, "creator" : "Default"}, "trunk" : {"image" : default_trunk, "name" : "Default Trunk", "price" : 0, "creator" : "Default"}, "leaves" : {"image" : default_leaves, "name" : "Default Leaves", "price" : 0, "creator" : "Default"}, "background_color" : (0, 0, 255)}
 default_trees = (default_tree, default_tree, default_tree)
 default_user = {"user_id" : "", "trees" : default_trees, "balance" : 200, "inventory" : [], "parts" : []}
 
-valid_parts = ("base", "trunk", "leafpattern")
+valid_parts = ("base", "trunk", "leaves")
 
 def binary_to_embed(binary):
     part_image = Image.open(BytesIO(binary))
@@ -79,7 +79,7 @@ class Shop(commands.Cog):
 
         part_type = part_type.lower()
         if part_type not in valid_parts:
-            await ctx.send("Enter base, trunk, or leafpattern.")
+            await ctx.send("Enter base, trunk, or leaves.")
             return
         
         if len(part_name) > 20:
@@ -93,7 +93,7 @@ class Shop(commands.Cog):
         if part_type == 'base' and await check_attachment(ctx, 15, 3) == False:
             return
 
-        elif part_type in ['trunk', 'leafpattern'] and await check_attachment(ctx, 15, 12) == False:
+        elif part_type in ['trunk', 'leaves'] and await check_attachment(ctx, 15, 12) == False:
             return
 
         user = user_col.find_one({'user_id' : ctx.author.id})
@@ -161,7 +161,7 @@ class Shop(commands.Cog):
 
         part_type = part_type.lower()
         if part_type not in valid_parts:
-            await ctx.send("Enter base, trunk, or leafpattern.")
+            await ctx.send("Enter base, trunk, or leaves.")
             return
 
         if member == None:
