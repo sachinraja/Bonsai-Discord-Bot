@@ -181,7 +181,7 @@ class Shop(commands.Cog):
                 parts.append(part)
         
         if len(parts) == 0:
-            await ctx.send(f"{member} has no {part_type}s listed.")
+            await ctx.send(f"{member} has none of those listed.")
             return
 
         part_picture = binary_to_embed(parts[0]["image"])
