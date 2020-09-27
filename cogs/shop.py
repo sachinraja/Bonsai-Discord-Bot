@@ -73,7 +73,7 @@ class Shop(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @commands.command(name='list')
+    @commands.command(name="list")
     async def create_part_listing(self, ctx, part_type, part_name, list_price : int):
         """List a part on the player's shop."""
 
@@ -90,43 +90,43 @@ class Shop(commands.Cog):
             await ctx.send("List Price cannot be less than $0 or over $10,000.")
             return
         
-        if part_type == 'base' and await check_attachment(ctx, 15, 3) == False:
+        if part_type == "base" and await check_attachment(ctx, 15, 3) == False:
             return
 
-        elif part_type in ['trunk', 'leaves'] and await check_attachment(ctx, 15, 12) == False:
+        elif part_type in ["trunk", "leaves"] and await check_attachment(ctx, 15, 12) == False:
             return
 
-        user = user_col.find_one({'user_id' : ctx.author.id})
+        user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
             user = default_user
             user["user_id"] = ctx.author.id
             user_col.insert_one(user)
 
-        parts = user['parts']
+        parts = user["parts"]
 
         if len(parts) >= 15:
             await ctx.send(f"You have exceeded your limit of 15 parts.")
             return
 
         for part in parts:
-            if part['name'].lower() == part_name.lower():
+            if part["name"].lower() == part_name.lower():
                 await ctx.send(f"You have already listed a part with the name {part['name']}.")
                 return
 
         attachment_url = ctx.message.attachments[0].url
         file_request = requests.get(attachment_url)
-        parts.append({'image' : file_request.content, 'name' : part_name, 'type' : part_type, 'price' : list_price})
+        parts.append({"image" : file_request.content, "name" : part_name, "type" : part_type, "price" : list_price})
 
-        user_col.update_one({'user_id' : ctx.author.id}, {'$set' : user})
+        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
         im_part = binary_to_embed(file_request.content)
 
-        embed = discord.Embed(title=f'New {part_type} Listing', color=255)\
+        embed = discord.Embed(title=f"New {part_type} Listing", color=255)\
             .set_author(name= ctx.author.name)\
-            .add_field(name='Name', value=part_name)\
-            .add_field(name='List Price', value=list_price)\
-            .set_image(url='attachment://image.png')
+            .add_field(name="Name", value=part_name)\
+            .add_field(name="List Price", value=list_price)\
+            .set_image(url="attachment://image.png")
 
         await ctx.send(file=im_part, embed=embed)
 
@@ -134,28 +134,28 @@ class Shop(commands.Cog):
     async def delete_part_listing(self, ctx, part_name):
         """Delete a listing from the player's shop."""
 
-        user = user_col.find_one({'user_id' : ctx.author.id})
+        user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
-            await ctx.send("You don't have any parts listed.")
+            await ctx.send("You do not have any parts listed.")
             return
         
         part_for_removal = None
-        for i, part in enumerate(user['parts']):
-            if part['name'].lower() == part_name.lower():
-                part_for_removal = part['name']
+        for i, part in enumerate(user["parts"]):
+            if part["name"].lower() == part_name.lower():
+                part_for_removal = part["name"]
                 break
         
         if part_for_removal == None:
             await ctx.send(f"Could not find part {part_name}.")
             return
         
-        user['parts'].pop(i)
-        user_col.update_one({'user_id' : ctx.author.id}, {'$set' : user})
+        user["parts"].pop(i)
+        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
         await ctx.send(f"Removed part {part_for_removal}.")
         
-    @commands.command(name='shop')
+    @commands.command(name="shop")
     async def shop_parts(self, ctx, part_type, member : discord.Member = None):
         """View all the parts in a player's shop."""
 
@@ -184,7 +184,7 @@ class Shop(commands.Cog):
             await ctx.send(f"{member} has no {part_type}s listed.")
             return
 
-        part_picture = binary_to_embed(parts[0]['image'])
+        part_picture = binary_to_embed(parts[0]["image"])
 
         embed = discord.Embed(title=f"{parts[0]['type']} Listing 1", color=255)\
             .set_author(name=member.name)\
@@ -214,7 +214,7 @@ class Shop(commands.Cog):
                 if str(reaction.emoji) == "⬅️" and current_part != 0:
                     current_part -= 1
                     
-                    part_picture = binary_to_embed(parts[current_part]['image'])
+                    part_picture = binary_to_embed(parts[current_part]["image"])
 
                     embed = discord.Embed(title=f"{parts[current_part]['type']} Listing {current_part + 1}", color=255)\
                         .set_author(name=member.name)\
@@ -231,7 +231,7 @@ class Shop(commands.Cog):
                     
                     current_part += 1
 
-                    part_picture = binary_to_embed(parts[current_part]['image'])
+                    part_picture = binary_to_embed(parts[current_part]["image"])
 
                     embed = discord.Embed(title=f"{parts[current_part]['type']} Listing {current_part + 1}", color=255)\
                         .set_author(name=member.name)\
@@ -251,49 +251,49 @@ class Shop(commands.Cog):
     async def buy_part(self, ctx, part_name, member : discord.Member):
         """Buy a part from a player's shop."""
 
-        user = user_col.find_one({'user_id' : ctx.author.id})
+        user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
             user = default_user
             user["user_id"] = ctx.author.id
             user_col.insert_one(user)
 
-        if len(user['inventory']) >= 100:
+        if len(user["inventory"]) >= 100:
             await ctx.send("You have reached the limit of 100 parts in your inventory.")
             return
         
-        seller = user_col.find_one({'user_id' : member.id})
+        seller = user_col.find_one({"user_id" : member.id})
 
         if seller == None:
             await ctx.send(f"{member} has no parts listed.")
             return
 
         # get correct spelling of list in seller
-        all_parts = seller['parts']
+        all_parts = seller["parts"]
         part_to_buy = None
 
         for part in all_parts:
-            if part['name'].lower() == part_name.lower():
+            if part["name"].lower() == part_name.lower():
                 part_to_buy = part
         
         if part_to_buy == None:
-            await ctx.send(f"{member} doesn't have a part named {part_name}.")
+            await ctx.send(f"{member} does not have a part named {part_name}.")
             return
         
-        if part_to_buy['price'] > user['balance']:
+        if part_to_buy["price"] > user["balance"]:
             await ctx.send(f"You only have ${user['balance']}, but {part_to_buy['name']} costs ${part_to_buy['price']}.")
             return
         
         # give part and remove money from user
-        part_to_buy['creator'] = str(member)
-        user['inventory'].append(part_to_buy)
-        user['balance'] -= part_to_buy['price']
-        user_col.update_one({'user_id' : ctx.author.id}, {'$set' : user})
+        part_to_buy["creator"] = str(member)
+        user["inventory"].append(part_to_buy)
+        user["balance"] -= part_to_buy["price"]
+        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
         # give money to seller
-        seller_tree_account = user_col.find_one({'user_id' : member.id})
-        seller_tree_account['balance'] += part_to_buy['price']
-        user_col.update_one({'user_id' : member.id}, {'$set' : seller_tree_account})
+        seller_tree_account = user_col.find_one({"user_id" : member.id})
+        seller_tree_account["balance"] += part_to_buy["price"]
+        user_col.update_one({"user_id" : member.id}, {"$set" : seller_tree_account})
 
         await ctx.send(f"You bought {member}'s {part_to_buy['name']}.")
 

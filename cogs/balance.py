@@ -43,7 +43,7 @@ class Balance(commands.Cog):
     async def daily_reward(self, ctx):
         """Get a random amount of money every 24 hours."""
 
-        user = user_col.find_one({'user_id' : ctx.author.id})
+        user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
             user = default_user
@@ -51,9 +51,9 @@ class Balance(commands.Cog):
             user_col.insert_one(user)
         
         reward = randint(50, 100)
-        user['balance'] += randint(50, 100)
+        user["balance"] += randint(50, 100)
 
-        user_col.update_one({'user_id' : ctx.author.id}, {'$set' : user})
+        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
         await ctx.send(f"Added ${reward} to your balance! You now have ${user['balance']}.")
 
@@ -64,7 +64,7 @@ class Balance(commands.Cog):
         # error message if the command is on cooldown still
         if isinstance(error, commands.CommandOnCooldown):
             # time left on cooldown converted from seconds to hours
-            await ctx.send(f'This command is on cooldown, try again in{error.retry_after / 3600: .1f} hours.')
+            await ctx.send(f"This command is on cooldown, try again in{error.retry_after / 3600: .1f} hours.")
 
     @commands.command(name="balance")
     async def check_balance(self, ctx, member : discord.Member = None):
@@ -73,7 +73,7 @@ class Balance(commands.Cog):
         if member == None:
             member = ctx.author
 
-        user = user_col.find_one({'user_id' : member.id})
+        user = user_col.find_one({"user_id" : member.id})
         
         if user == None:
             await ctx.send(f"{member} has $200.")

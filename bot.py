@@ -14,7 +14,7 @@ TOKEN = os.environ["TOKEN"]
 logger = logging.getLogger("discord")
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
 logger.addHandler(handler)
 
 bot = commands.AutoShardedBot(command_prefix="b!")
@@ -32,7 +32,7 @@ async def help_message(ctx):
     """Sends a list of all the commands and their usage."""
 
     embed = discord.Embed(title="Help", color=65280)\
-        .add_field(name="Argument Definitions", value="Part Type : base, trunk, or leaves.\nMember=optional : If you don't input a member here, it will default to yourself.")\
+        .add_field(name="Argument Definitions", value="Part Type : base, trunk, or leaves.\nMember=optional : If you do not input a member here, it will default to yourself.")\
         .add_field(name="b!about", value="Displays a general description of the bot as well as other useful information about it.", inline=False)\
         .add_field(name="b!balance [Member=optional]", value="Shows your balance or the balance of someone else.", inline=False)\
         .add_field(name="b!buy [Part Name] [Member]", value="Buy a part from a member.", inline=False)\
@@ -55,7 +55,7 @@ async def about_message(ctx):
     """Sends useful information about the bot."""
 
     embed = discord.Embed(title="About", color=255)\
-        .add_field(name="Creator", value="<@295014158771159040>")\
+        .add_field(name="Creator", value="Cloudfox#6783")\
         .add_field(name="Support Server", value="https://discord.gg/YzmSjZz")\
         .add_field(name="GitHub Repository", value="https://github.com/xCloudzx/Bonsai-Discord-Bot")\
         .add_field(name="Description", value="Customize a bonsai tree using items listed by other users. Mix and match bases, trunks, and leaves.", inline=False)

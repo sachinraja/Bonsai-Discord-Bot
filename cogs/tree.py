@@ -99,18 +99,18 @@ class Tree(commands.Cog):
 
         await ctx.send(file=im_tree, embed=embed)
     
-    @commands.command(name='reset')
+    @commands.command(name="reset")
     async def reset_tree(self, ctx, input_tree_num : int):
         """Resets the tree of input_tree_num."""
 
         # check for valid tree
         if input_tree_num < 1 or input_tree_num > 3:
-            await ctx.send('Enter a number from 1 to 3.')
+            await ctx.send("Enter a number from 1 to 3.")
             return
 
         tree_num = input_tree_num - 1
 
-        user = user_col.find_one({'user_id' : ctx.author.id})
+        user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
             user = default_user
@@ -118,8 +118,8 @@ class Tree(commands.Cog):
             user_col.insert_one(user)
 
         # Reset tree and update in db
-        user['trees'][tree_num] = default_tree
-        user_col.update_one({'user_id' : ctx.author.id}, {"$set" : user})
+        user["trees"][tree_num] = default_tree
+        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
         im_tree = create_tree_image(user, tree_num)
         embed = create_tree_embed(user, ctx.author.name, input_tree_num, tree_num)
@@ -178,12 +178,12 @@ class Tree(commands.Cog):
         """Replaces the background color with a new color."""
 
         if input_tree_num < 1 or input_tree_num > 3:
-            await ctx.send('Enter a number from 1 to 3.')
+            await ctx.send("Enter a number from 1 to 3.")
             return
 
         tree_num = input_tree_num - 1
         
-        user = user_col.find_one({'user_id' : ctx.author.id})
+        user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
             user = default_user
@@ -192,14 +192,14 @@ class Tree(commands.Cog):
         
         # convert to rgb
         try:
-            h = hex_code.lstrip('#')
-            user['trees'][tree_num]['background_color'] = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+            h = hex_code.lstrip("#")
+            user["trees"][tree_num]["background_color"] = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
         
         except:
             await ctx.send(f"{hex_code} is not valid.")
             return
         
-        user_col.update_one({'user_id' : ctx.author.id}, {'$set' : user})
+        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
         im_tree = create_tree_image(user, tree_num)
         embed = create_tree_embed(user, ctx.author.name, input_tree_num, tree_num)
