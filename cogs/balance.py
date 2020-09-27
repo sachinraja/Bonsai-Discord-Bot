@@ -51,7 +51,7 @@ class Balance(commands.Cog):
             user_col.insert_one(user)
         
         reward = randint(50, 100)
-        user["balance"] += randint(50, 100)
+        user["balance"] += reward
 
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
