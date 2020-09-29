@@ -86,7 +86,7 @@ class Balance(commands.Cog):
 
         top_balances = list(cursor)
 
-        embed = discord.Embed(title="Top Balances")
+        embed = discord.Embed(title="Top Balances", color=16776960)
         for i, user in enumerate(top_balances):
             username = str(self.bot.get_user(user["user_id"]))
 
