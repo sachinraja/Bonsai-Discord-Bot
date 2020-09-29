@@ -30,5 +30,6 @@
 <p>b!replacecolor [1 <= Tree Number <= 3] [Color Hex Code]: Replace the background color of a tree.</p>
 <p>b!reset [1 <= Tree Number <= 3]: Reset a tree to defaults.</p>
 <p>b!shop [Part Type] [Member=optional]: Show all the parts that Member has listed as Part Type.</p>
+<p>b!top: Shows the users with the top ten balances.</p>
 <p>b!tree [1 <= Tree Number <= 3]: Displays the tree.</p>
 <p>b!unlist [Part Name]: Remove a part listed in your shop.</p>

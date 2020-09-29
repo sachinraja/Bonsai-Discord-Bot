@@ -3,7 +3,7 @@ from discord.ext import commands
 import logging
 import os
 from dotenv import load_dotenv
-import pymongo
+import pymongo  
 
 # load environmental variables
 load_dotenv()
@@ -45,6 +45,7 @@ async def help_message(ctx):
         .add_field(name="b!color [1 <= Tree Number <= 3] [Color Hex Code]", value="Replace the background color of a tree.", inline=False)\
         .add_field(name="b!reset [1 <= Tree Number <= 3]", value="Reset a tree to defaults.", inline=False)\
         .add_field(name="b!shop [Part Type] [Member=optional]", value="Show all the parts that Member has listed as Part Type.", inline=False)\
+        .add_field(name="b!top", value="Shows the users with the top ten balances.", inline=False)\
         .add_field(name="b!tree [1 <= Tree Number <= 3]", value="Displays the tree.", inline=False)\
         .add_field(name="b!unlist [Part Name]", value="Remove a part listed in your shop.", inline=False)
 

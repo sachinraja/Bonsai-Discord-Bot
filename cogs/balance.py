@@ -80,5 +80,21 @@ class Balance(commands.Cog):
         
         await ctx.send(f"{member} has ${user['balance']}.")
 
+    @commands.command(name="top")
+    async def find_top_balance(self, ctx):
+        cursor = user_col.find({}).sort([("balance", pymongo.DESCENDING)]).limit(10)
+
+        top_balances = list(cursor)
+
+        embed = discord.Embed(title="Top Balances")
+        for i, user in enumerate(top_balances):
+            username = str(self.bot.get_user(user["user_id"]))
+
+            embed = embed.add_field(name="Place", value=i+1)\
+                .add_field(name="Name", value=username)\
+                .add_field(name="Balance", value=user["balance"])
+        
+        await ctx.send(embed=embed)
+
 def setup(bot):
     bot.add_cog(Balance(bot))
