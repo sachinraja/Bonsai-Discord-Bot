@@ -30,8 +30,9 @@ default_leaves = None
 with open("default_leaves.png", "rb") as imageFile:
     default_leaves = imageFile.read()
 
-default_tree = {"base" : {"image" : default_base, "name" : "Default Base", "price" : 0, "creator" : "Default"}, "trunk" : {"image" : default_trunk, "name" : "Default Trunk", "price" : 0, "creator" : "Default"}, "leaves" : {"image" : default_leaves, "name" : "Default Leaves", "price" : 0, "creator" : "Default"}, "background_color" : (0, 0, 255)}
-default_trees = (default_tree, default_tree, default_tree)
+default_tree = {"name" : "Default Tree", "base" : {"image" : default_base, "name" : "Default Base", "price" : 0, "creator" : "Cloudfox#6783"}, "trunk" : {"image" : default_trunk, "name" : "Default Trunk", "price" : 0, "creator" : "Cloudfox#6783"}, "leaves" : {"image" : default_leaves, "name" : "Default Leaves", "price" : 0, "creator" : "Cloudfox#6783"}, "background_color" : (0, 0, 255)}
+default_trees = [default_tree]
+
 default_user = {"user_id" : "", "trees" : default_trees, "balance" : 200, "inventory" : [], "parts" : []}
 
 valid_parts = ("base", "trunk", "leaves")
@@ -82,8 +83,8 @@ class Shop(commands.Cog):
             await ctx.send("Enter base, trunk, or leaves.")
             return
         
-        if len(part_name) > 20:
-            await ctx.send("Part Name cannot be over 20 characters long.")
+        if len(part_name) > 50:
+            await ctx.send("Part Name cannot be over 50 characters long.")
             return
         
         if list_price < 0 or list_price > 10000:
@@ -99,7 +100,7 @@ class Shop(commands.Cog):
         user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
-            user = default_user
+            user = default_user.copy()
             user["user_id"] = ctx.author.id
             user_col.insert_one(user)
 
@@ -248,19 +249,22 @@ class Shop(commands.Cog):
                 break
         
     @commands.command(name="buy")
-    async def buy_part(self, ctx, part_name, member : discord.Member):
+    async def buy_part(self, ctx, part_name, member : discord.Member = None):
         """Buy a part from a player's shop."""
 
         user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
-            user = default_user
+            user = default_user.copy()
             user["user_id"] = ctx.author.id
             user_col.insert_one(user)
 
         if len(user["inventory"]) >= 100:
             await ctx.send("You have reached the limit of 100 parts in your inventory.")
             return
+        
+        if member == None:
+            member = ctx.author
         
         seller = user_col.find_one({"user_id" : member.id})
 

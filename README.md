@@ -20,16 +20,21 @@
 <p>Member=optional: If you don't input a member here, it will default to yourself.</p>
 <hr width="50%" align="left">
 <h3>Commands</h3>
+<p>b!about: Displays a general description of the bot as well as other useful information about it.<p>
 <p>b!balance [Member=optional]: Shows your balance or the balance of someone else.<p>
-<p>b!buy [Part Name] [Member]: Buy a part from a member.</p>
+<p>b!buy [Part Name] [Member=optional]: Buy a part from Member.</p>
+<p>b!color [Color Hex Code] [Tree Name]: Replace the background color of a tree.</p>
+<p>b!create [Tree Name <= 50 characters]: Creates a tree with the name Tree Name.</p>
 <p>b!daily: Claim your daily reward ($50-$100).</p>
 <p>b!help: Displays the help message with the list of commands.</p>
 <p>b!inventory [Member=optional]: Displays all the parts in your inventory and their corresponding inventory number.</p>
-<p>b!list [Part Type] [Part Name <= 20] [0 < List Price < 10000]: List a part for sale. This must have an attached image to use for the part. Bases must be 15 x 3. Trunks must be 15 x 12. Leaf Patterns must be 15 x 12.</p>
-<p>b!replace [1 <= Tree Number <= 3] [Inventory Number]: Replace a part on a tree with one in your inventory.</p>
-<p>b!replacecolor [1 <= Tree Number <= 3] [Color Hex Code]: Replace the background color of a tree.</p>
-<p>b!reset [1 <= Tree Number <= 3]: Reset a tree to defaults.</p>
+<p>b!list [Part Type] [Part Name <= 50 characters] [0 < List Price < 10000]: List a part for sale. This must have an attached image to use for the part. Bases must be 15 x 3. Trunks must be 15 x 12. Leaf Patterns must be 15 x 12.</p>
+<p>b!removeinventory [Inventory Number]: Remove a part from your inventory (does not refund any money).</p>
+<p>b!replace [Inventory Number] [Tree Name]: Replace a part on a tree with one in your inventory.</p>
+<p>b!reset [Tree Name]: Reset a tree to defaults.</p>
 <p>b!shop [Part Type] [Member=optional]: Show all the parts that Member has listed as Part Type.</p>
 <p>b!top: Shows the users with the top ten balances.</p>
-<p>b!tree [1 <= Tree Number <= 3]: Displays the tree.</p>
+<p>b!tree [Tree Name]: Displays the tree.</p>
+<p>b!trees [Member=optional]: Displays all of Member's trees.</p>
 <p>b!unlist [Part Name]: Remove a part listed in your shop.</p>
+<p>b!visit [Member] [Tree Name]: Display Member's tree Tree Name.</p>

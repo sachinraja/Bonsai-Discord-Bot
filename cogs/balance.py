@@ -29,8 +29,9 @@ default_leaves = None
 with open("default_leaves.png", "rb") as imageFile:
     default_leaves = imageFile.read()
 
-default_tree = {"base" : {"image" : default_base, "name" : "Default Base", "price" : 0, "creator" : "Default"}, "trunk" : {"image" : default_trunk, "name" : "Default Trunk", "price" : 0, "creator" : "Default"}, "leaves" : {"image" : default_leaves, "name" : "Default Leaves", "price" : 0, "creator" : "Default"}, "background_color" : (0, 0, 255)}
-default_trees = (default_tree, default_tree, default_tree)
+default_tree = {"name" : "Default Tree", "base" : {"image" : default_base, "name" : "Default Base", "price" : 0, "creator" : "Cloudfox#6783"}, "trunk" : {"image" : default_trunk, "name" : "Default Trunk", "price" : 0, "creator" : "Cloudfox#6783"}, "leaves" : {"image" : default_leaves, "name" : "Default Leaves", "price" : 0, "creator" : "Cloudfox#6783"}, "background_color" : (0, 0, 255)}
+default_trees = [default_tree]
+
 default_user = {"user_id" : "", "trees" : default_trees, "balance" : 200, "inventory" : [], "parts" : []}
 
 class Balance(commands.Cog):
@@ -46,7 +47,7 @@ class Balance(commands.Cog):
         user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
-            user = default_user
+            user = default_user.copy()
             user["user_id"] = ctx.author.id
             user_col.insert_one(user)
         
@@ -76,7 +77,8 @@ class Balance(commands.Cog):
         user = user_col.find_one({"user_id" : member.id})
         
         if user == None:
-            await ctx.send(f"{member} has $200.")
+            await ctx.send(f"{member} does not have any trees.")
+            return
         
         await ctx.send(f"{member} has ${user['balance']}.")
 
