@@ -137,7 +137,7 @@ class Tree(commands.Cog):
         user = user_col.find_one({"user_id" : member.id})
         
         if user == None:
-            ctx.send(f"{member} does not have any trees.")
+            await ctx.send(f"{member} does not have any trees.")
             return
 
         tree_to_display = find_tree(user, input_tree_name)

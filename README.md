@@ -29,6 +29,7 @@
 <p>b!help: Displays the help message with the list of commands.</p>
 <p>b!inventory [Member=optional]: Displays all the parts in your inventory and their corresponding inventory number.</p>
 <p>b!list [Part Type] [Part Name <= 50 characters] [0 < List Price < 10000]: List a part for sale. This must have an attached image to use for the part. Bases must be 15 x 3. Trunks must be 15 x 12. Leaf Patterns must be 15 x 12.</p>
+<p>b!prefix [New Prefixes]: Change the bot's prefixes on a server. Separate new prefixes with a space.</p>
 <p>b!removeinventory [Inventory Number]: Remove a part from your inventory (does not refund any money).</p>
 <p>b!replace [Inventory Number] [Tree Name]: Replace a part on a tree with one in your inventory.</p>
 <p>b!reset [Tree Name]: Reset a tree to defaults.</p>
