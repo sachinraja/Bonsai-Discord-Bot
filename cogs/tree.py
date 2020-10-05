@@ -163,15 +163,15 @@ class Tree(commands.Cog):
             user_col.insert_one(user)
         
         if len(input_tree_name) > 50:
-            await ctx.send("Tree Name cannot be over 50 characters long.")
+            await ctx.send(f"{ctx.author}, Tree Name cannot be over 50 characters long.")
             return
         
         if len(user["trees"]) >= 3:
-            await ctx.send("You are already at the max number of trees! If you want to reset a tree, use the command b!reset [Tree Name].")
+            await ctx.send(f"{ctx.author} is already at the max number of trees! To reset a tree, use the reset [Tree Name] command. To delete a tree, use the delete [Tree Name] command.")
             return
         
         if find_tree(user, input_tree_name) != None:
-            await ctx.send(f"A tree with the name {input_tree_name} already exists.")
+            await ctx.send(f"{ctx.author}, a tree with the name {input_tree_name} already exists.")
             return
         
         new_tree = default_tree.copy()
@@ -183,7 +183,7 @@ class Tree(commands.Cog):
         tree_to_display = find_tree(user, input_tree_name)
             
         if tree_to_display == None:
-            await ctx.send(f"You do not have a tree with the name {input_tree_name}.")
+            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
             return
 
         im_tree = create_tree_image(user, tree_to_display)
@@ -205,7 +205,7 @@ class Tree(commands.Cog):
         tree_index = find_tree_index(user, input_tree_name)
 
         if tree_index == None:
-            await ctx.send(f"You do not have a tree with the name {input_tree_name}.")
+            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
             return
 
         # Reset tree and update in db
@@ -251,23 +251,23 @@ class Tree(commands.Cog):
         user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
-            await ctx.send(f"There is no part at inventory #{input_inventory_num}.")
+            await ctx.send(f"There is no part in {ctx.author}'s inventory at #{input_inventory_num}.")
             return
         
         inventory_num = input_inventory_num - 1
 
         if input_inventory_num <= 0:
-            await ctx.send(f"Inventory numbers must be over 0.")
+            await ctx.send(f"{ctx.author}, inventory numbers must be over 0.")
             return
         
         elif len(user["inventory"]) - 1 < inventory_num:
-            await ctx.send(f"Your inventory only goes up to {len(user['inventory'])}, but you entered #{input_inventory_num}.")
+            await ctx.send(f"{ctx.author}'s inventory only goes up to {len(user['inventory'])}, #{input_inventory_num} was entered.")
             return
         
         tree_index = find_tree_index(user, input_tree_name)
         
         if tree_index == None:
-            await ctx.send(f"You do not have a tree with the name {input_tree_name}.")
+            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
             return
         
         # get new part from user
@@ -293,7 +293,7 @@ class Tree(commands.Cog):
 
         await ctx.send(file=im_tree, embed=embed)
 
-    @commands.command(name="color")
+    @commands.command(name="color", aliases=["colour"])
     async def change_color(self, ctx, hex_code, *, input_tree_name):
         """Replaces the background color with a new color."""
 
@@ -307,7 +307,7 @@ class Tree(commands.Cog):
         tree_index = find_tree_index(user, input_tree_name)
 
         if tree_index == None:
-            await ctx.send(f"You do not have a tree with the name {input_tree_name}.")
+            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
             return
 
         # convert to rgb
@@ -316,7 +316,7 @@ class Tree(commands.Cog):
             user["trees"][tree_index]["background_color"] = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
         
         except:
-            await ctx.send(f"{hex_code} is not valid.")
+            await ctx.send(f"{ctx.author}, {hex_code} is not valid.")
             return
         
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
@@ -328,5 +328,75 @@ class Tree(commands.Cog):
         
         await ctx.send(file=im_tree, embed=embed)
     
+    @commands.command(name="rename")
+    async def rename_tree(self, ctx, input_tree_name, *, new_name):
+        """Rename tree of input_tree_name."""
+        
+        if len(new_name) > 50:
+            await ctx.send(f"{ctx.author}, Tree Name cannot be over 50 characters long.")
+            return
+
+        user = user_col.find_one({"user_id" : ctx.author.id})
+        
+        if user == None:
+            user = default_user.copy()
+            user["user_id"] = ctx.author.id
+            user_col.insert_one(user)
+        
+        tree_index = find_tree_index(user, input_tree_name)
+
+        if tree_index == None:
+            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
+            return
+        
+        user["trees"][tree_index]["name"] = new_name
+        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
+
+        tree_to_display = find_tree(user, new_name)
+
+        im_tree = create_tree_image(user, tree_to_display)
+        embed = create_tree_embed(user, ctx.author.name, tree_to_display)
+        
+        await ctx.send(file=im_tree, embed=embed)
+    
+    @commands.command(name="delete")
+    async def delete_tree(self, ctx, *, input_tree_name):
+        user = user_col.find_one({"user_id" : ctx.author.id})
+        
+        if user == None:
+            user = default_user.copy()
+            user["user_id"] = ctx.author.id
+            user_col.insert_one(user)
+        
+        tree_index = find_tree_index(user, input_tree_name)
+
+        if tree_index == None:
+            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
+            return
+
+        # get parts and move to inventory
+        tree_name_output = user["trees"][tree_index]["name"]
+
+        # iterate over tree to return parts to inventory
+        inventory_parts = []
+        for key, value in user["trees"][tree_index].items():
+            if key == "name" or key == "background_color":
+                continue
+            
+            part_for_inventory = value
+            part_for_inventory["type"] = key
+            inventory_parts.append(part_for_inventory)
+        
+        # add old part to inventory
+        user["inventory"].extend(inventory_parts)
+            
+        # delete tree
+        user["trees"].pop(tree_index)
+        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
+
+        await ctx.send(f"Deleted {ctx.author}'s tree {tree_name_output}.")
+
+
+
 def setup(bot):
     bot.add_cog(Tree(bot))

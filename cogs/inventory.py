@@ -103,24 +103,39 @@ class Inventory(commands.Cog):
         user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
-            await ctx.send(f"There is no part at inventory #{input_inventory_num}.")
+            await ctx.send(f"There is no part in {ctx.author}'s inventory at #{input_inventory_num}.")
             return
         
         inventory_num = input_inventory_num - 1
 
         # check for proper inventory number
         if input_inventory_num <= 0:
-            await ctx.send(f"Inventory numbers must be over 0.")
+            await ctx.send(f"{ctx.author}, inventory numbers must be over 0.")
             return
         
         elif len(user["inventory"]) - 1 < inventory_num:
-            await ctx.send(f"Your inventory only goes up to {len(user['inventory'])}, but you entered #{input_inventory_num}.")
+            await ctx.send(f"{ctx.author}'s inventory only goes up to {len(user['inventory'])}, #{input_inventory_num} was entered.")
             return
         
         user["inventory"].pop(inventory_num)
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
-        await ctx.send(f"Part at #{input_inventory_num} has been removed.")
+        await ctx.send(f"{ctx.author}'s part at #{input_inventory_num} has been removed.")
+
+    @commands.command(name="clearinventory")
+    async def clear_inventory(self, ctx):
+        """Deletes all of the parts in the inventory."""
+
+        user = user_col.find_one({"user_id" : ctx.author.id})
+        
+        if user == None:
+            await ctx.send(f"Cleared {ctx.author}'s inventory.")
+            return
+
+        user["inventory"].clear()
+        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
+
+        await ctx.send(f"Cleared {ctx.author}'s inventory.")
 
 def setup(bot):
     bot.add_cog(Inventory(bot))

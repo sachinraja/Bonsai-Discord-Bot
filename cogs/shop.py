@@ -50,23 +50,23 @@ def binary_to_embed(binary):
 async def check_attachment(ctx, width, height):
     # check for attachment on message
     if len(ctx.message.attachments) == 0:
-        await ctx.send("Attach a file ending with jpg, jpeg, or png.")
+        await ctx.send(f"{ctx.author}, attach an image ending with jpg, jpeg, or png.")
         return False
     
     # check for correct extension on attachment
-    pic_ext = ['.jpg', '.jpeg', '.png']
+    pic_ext = [".jpg", ".jpeg", ".png"]
     match = False
     for ext in pic_ext:
         if ctx.message.attachments[0].filename.endswith(ext):
             match = True
     
     if match == False:
-        await ctx.send("The file must end with jpg, jpeg, or png.")
+        await ctx.send(f"{ctx.author} the image must end with jpg, jpeg, or png.")
         return False
 
     # check for correct size
-    if not ctx.message.attachments[0].width == width or not ctx.message.attachments[0].height == height:
-        await ctx.send(f'Wrong size ({ctx.message.attachments[0].width} x {ctx.message.attachments[0].height})! The base must be {width} x {height}.')
+    if ctx.message.attachments[0].width != width or ctx.message.attachments[0].height != height:
+        await ctx.send(f"{ctx.author}, wrong size: ({ctx.message.attachments[0].width} x {ctx.message.attachments[0].height})! The image must be {width} x {height}.")
         return False
 
 class Shop(commands.Cog):
@@ -80,15 +80,15 @@ class Shop(commands.Cog):
 
         part_type = part_type.lower()
         if part_type not in valid_parts:
-            await ctx.send("Enter base, trunk, or leaves.")
+            await ctx.send(f"{ctx.author}, enter base, trunk, or leaves.")
             return
         
         if len(part_name) > 50:
-            await ctx.send("Part Name cannot be over 50 characters long.")
+            await ctx.send(f"{ctx.author}, Part Name cannot be over 50 characters long.")
             return
         
         if list_price < 0 or list_price > 10000:
-            await ctx.send("List Price cannot be less than $0 or over $10,000.")
+            await ctx.send(f"{ctx.author}, List Price cannot be less than $0 or over $10,000.")
             return
         
         if part_type == "base" and await check_attachment(ctx, 15, 3) == False:
@@ -107,12 +107,12 @@ class Shop(commands.Cog):
         parts = user["parts"]
 
         if len(parts) >= 15:
-            await ctx.send(f"You have exceeded your limit of 15 parts.")
+            await ctx.send(f"{ctx.author}, you have exceeded your limit of 15 parts.")
             return
 
         for part in parts:
             if part["name"].lower() == part_name.lower():
-                await ctx.send(f"You have already listed a part with the name {part['name']}.")
+                await ctx.send(f"{ctx.author}, you have already listed a part with the name {part['name']}.")
                 return
 
         attachment_url = ctx.message.attachments[0].url
@@ -138,7 +138,7 @@ class Shop(commands.Cog):
         user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
-            await ctx.send("You do not have any parts listed.")
+            await ctx.send(f"{ctx.author} does not have any parts listed.")
             return
         
         part_for_removal = None
@@ -148,13 +148,13 @@ class Shop(commands.Cog):
                 break
         
         if part_for_removal == None:
-            await ctx.send(f"Could not find part {part_name}.")
+            await ctx.send(f"{ctx.author}, part {part_name} was not found.")
             return
         
         user["parts"].pop(i)
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
-        await ctx.send(f"Removed part {part_for_removal}.")
+        await ctx.send(f"Unlisted {ctx.author}'s part {part_for_removal}.")
         
     @commands.command(name="shop")
     async def shop_parts(self, ctx, part_type, member : discord.Member = None):
@@ -162,7 +162,7 @@ class Shop(commands.Cog):
 
         part_type = part_type.lower()
         if part_type not in valid_parts:
-            await ctx.send("Enter base, trunk, or leaves.")
+            await ctx.send(f"{ctx.author}, enter base, trunk, or leaves.")
             return
 
         if member == None:
@@ -260,7 +260,7 @@ class Shop(commands.Cog):
             user_col.insert_one(user)
 
         if len(user["inventory"]) >= 100:
-            await ctx.send("You have reached the limit of 100 parts in your inventory.")
+            await ctx.send(f"{ctx.author}, you have reached the limit of 100 parts in your inventory.")
             return
         
         if member == None:
@@ -285,7 +285,7 @@ class Shop(commands.Cog):
             return
         
         if part_to_buy["price"] > user["balance"]:
-            await ctx.send(f"You only have ${user['balance']}, but {part_to_buy['name']} costs ${part_to_buy['price']}.")
+            await ctx.send(f"{ctx.author}, you only have ${user['balance']}, but {part_to_buy['name']} costs ${part_to_buy['price']}.")
             return
         
         # give part and remove money from user
@@ -299,7 +299,7 @@ class Shop(commands.Cog):
         seller_tree_account["balance"] += part_to_buy["price"]
         user_col.update_one({"user_id" : member.id}, {"$set" : seller_tree_account})
 
-        await ctx.send(f"You bought {member}'s {part_to_buy['name']}.")
+        await ctx.send(f"{ctx.author} bought {member}'s {part_to_buy['name']}.")
 
 def setup(bot):
     bot.add_cog(Shop(bot))

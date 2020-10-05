@@ -25,20 +25,23 @@
 <h3>Commands</h3>
 <p>about: Displays a general description of the bot as well as other useful information about it.<p>
 <p>balance [Member=optional]: Shows your balance or the balance of someone else.<p>
-<p>buy [Part Name] [Member=optional]: Buy a part from Member.</p>
-<p>color [Color Hex Code] [Tree Name]: Replace the background color of a tree.</p>
+<p>buy [Part Name] [Member=optional]: Buy part Part Name from Member.</p>
+<p>color [Color Hex Code] [Tree Name]: Replace the background color of tree Tree Name.</p>
+<p>clearinventory: Removes all parts from your inventory.</p>
 <p>create [Tree Name <= 50 characters]: Creates a tree with the name Tree Name.</p>
 <p>daily: Claim your daily reward ($50-$100).</p>
+<p>delete [Tree Name]: Deletes the tree Tree Name and returns all its parts to your inventory.</p>
 <p>help: Displays the help message with the list of commands.</p>
 <p>inventory [Member=optional]: Displays all the parts in your inventory and their corresponding inventory number.</p>
-<p>list [Part Type] [Part Name <= 50 characters] [0 < List Price < 10000]: List a part for sale. This must have an attached image to use for the part. Bases must be 15 x 3. Trunks must be 15 x 12. Leaf Patterns must be 15 x 12.</p>
-<p>prefix [New Prefixes]: Change the bot's prefixes on a server. Separate new prefixes with a space.</p>
-<p>removeinventory [Inventory Number]: Remove a part from your inventory (does not refund any money).</p>
-<p>replace [Inventory Number] [Tree Name]: Replace a part on a tree with one in your inventory.</p>
-<p>reset [Tree Name]: Reset a tree to defaults.</p>
+<p>list [Part Type] [Part Name <= 50 characters] [0 < List Price < 10000]: List a part for sale in your shop. This must have an attached image to use for the part. Bases must be 15 x 3, trunks must be 15 x 12, and leaves must be 15 x 12.</p>
+<p>prefix [New Prefixes]: Change the bot's prefixes to New Prefixes on your server. Separate each new prefix with a space.</p>
+<p>removeinventory [Inventory Number]: Remove part at Inventory Number from your inventory (does not refund any money).</p>
+<p>replace [Inventory Number] [Tree Name]: Replace a part on tree Tree Name with the part at Inventory Number in your inventory. The old part will return to your inventory.</p>
+<p>reset [Tree Name]: Reset tree Tree Name to defaults (parts and color). The parts are not returned to your inventory.</p>
 <p>shop [Part Type] [Member=optional]: Show all the parts that Member has listed as Part Type.</p>
 <p>top: Shows the users with the top ten balances.</p>
-<p>tree [Tree Name]: Displays the tree.</p>
+<p>tree [Tree Name]: Displays the tree Tree Name.</p>
 <p>trees [Member=optional]: Displays all of Member's trees.</p>
-<p>unlist [Part Name]: Remove a part listed in your shop.</p>
+<p>unlist [Part Name]: Unlist part Part Name from your shop.</p>
+<p>rename "[Old Tree Name]" [New Tree Name <= 50 characters]: Rename the tree Old Tree Name to New Tree Name. Old Tree Name must be surrounded by quotes ("") if there is a space in it.</p>
 <p>visit [Member] [Tree Name]: Display Member's tree Tree Name.</p>

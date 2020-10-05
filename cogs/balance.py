@@ -56,7 +56,7 @@ class Balance(commands.Cog):
 
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
-        await ctx.send(f"Added ${reward} to your balance! You now have ${user['balance']}.")
+        await ctx.send(f"Added ${reward} to {ctx.author}'s balance! {ctx.author} now have ${user['balance']}.")
 
     @daily_reward.error
     async def daily_reward_error(self, ctx, error):
@@ -65,7 +65,7 @@ class Balance(commands.Cog):
         # error message if the command is on cooldown still
         if isinstance(error, commands.CommandOnCooldown):
             # time left on cooldown converted from seconds to hours
-            await ctx.send(f"This command is on cooldown, try again in{error.retry_after / 3600: .1f} hours.")
+            await ctx.send(f"{ctx.author} this command is on cooldown for you, try again in{error.retry_after / 3600: .1f} hours.")
 
     @commands.command(name="balance")
     async def check_balance(self, ctx, member : discord.Member = None):

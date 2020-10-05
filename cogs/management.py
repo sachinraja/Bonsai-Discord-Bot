@@ -21,17 +21,18 @@ class Management(commands.Cog):
     @commands.command(name="prefix")
     @commands.has_permissions(administrator=True)
     async def change_prefix(self, ctx, *, input_prefixes):
-        
+        """Change prefixes on a server."""
+
         prefixes = input_prefixes.split()
 
         # checks
         if len(prefixes) > 3:
-            await ctx.send("You can only have up to 3 prefixes.")
+            await ctx.send(f"{ctx.author}, only 3 prefixes can be entered.")
             return
 
         for prefix in prefixes:
             if len(prefix) > 10:
-                await ctx.send(f"{prefix} is over the 10 character limit.")
+                await ctx.send(f"{ctx.author}, {prefix} is over the 10 character limit.")
                 return
         
         guild = guild_col.find_one({"guild_id" : ctx.guild.id})
