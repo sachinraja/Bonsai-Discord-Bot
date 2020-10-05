@@ -43,8 +43,12 @@ class Management(commands.Cog):
         guild["prefixes"] = prefixes
         guild_col.update_one({"guild_id" : ctx.guild.id}, {"$set" : guild})
 
-        prefixes_string = ", ".join(prefixes)
-        await ctx.send(f"{ctx.guild} can now use the prefixes {prefixes_string}.")
+        embed = discord.Embed(title=f"{ctx.guild} Prefixes", color=3138682)
+
+        for i, prefix in enumerate(prefixes):
+            embed = embed.add_field(name=f"Prefix {i+1}", value=prefix)
+        
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Management(bot))
