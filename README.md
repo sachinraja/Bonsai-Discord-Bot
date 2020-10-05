@@ -1,5 +1,5 @@
 <h1>Bonsai-Discord-Bot<h2>
-<p style="font-size:0.8em;">Customize a bonsai tree using marketplace items on Discord.</p>
+<p style="font-size:0.8em;">Customize three different bonsai trees using parts (base, trunk, and leaves) from the marketplace and setting a background color. All users can upload these parts to the marketplace and earn money when someone buys from them. They can then replace the parts in trees with the ones in inventories whenever they like. There is, however, a max of 15 parts in each user's shop.</p>
 
 <div align="center">
     <a href="https://discord.gg/DjJAhNG">
@@ -20,7 +20,7 @@
 <p>Member=optional: If you don't input a member here, it will default to yourself.</p>
 <hr width="50%" align="left">
 <h3>Prefix</h3>
-<p>The default prefix is b!. This can be changed with the prefix command. Commands can also be called by mentioning the bot.</p>
+<p>The default prefix is <code>b!</code>. This can be changed with the prefix command. Commands can also be called by mentioning the bot.</p>
 <hr width="50%" align="left">
 <h3>Commands</h3>
 <p>about: Displays a general description of the bot as well as other useful information about it.<p>
