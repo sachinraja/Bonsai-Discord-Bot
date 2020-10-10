@@ -85,6 +85,7 @@ async def about_message(ctx):
         .add_field(name="Creator", value="Cloudfox#6783")\
         .add_field(name="Support Server", value="https://discord.gg/YzmSjZz")\
         .add_field(name="GitHub Repository", value="https://github.com/xCloudzx/Bonsai-Discord-Bot")\
+        .add_field(name="Invite Link", value="[Invite Bot to Your Server](https://discord.com/oauth2/authorize?client_id=743898864926589029&permissions=8192&scope=bot)")\
         .add_field(name="Description", value="Customize a bonsai tree using items listed by other users. Mix and match bases, trunks, and leaves.", inline=False)
 
     await ctx.send(embed=embed)
