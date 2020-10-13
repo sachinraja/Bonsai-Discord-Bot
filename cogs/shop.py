@@ -157,7 +157,7 @@ class Shop(commands.Cog):
         await ctx.send(f"Unlisted {ctx.author}'s part {part_for_removal}.")
         
     @commands.command(name="shop")
-    async def shop_parts(self, ctx, part_type, member : discord.Member = None):
+    async def shop_parts(self, ctx, part_type, member : discord.User = None):
         """View all the parts in a player's shop."""
 
         part_type = part_type.lower()
@@ -249,7 +249,7 @@ class Shop(commands.Cog):
                 break
         
     @commands.command(name="buy")
-    async def buy_part(self, ctx, part_name, member : discord.Member = None):
+    async def buy_part(self, ctx, part_name, member : discord.User = None):
         """Buy a part from a player's shop."""
 
         user = user_col.find_one({"user_id" : ctx.author.id})

@@ -68,7 +68,7 @@ class Balance(commands.Cog):
             await ctx.send(f"{ctx.author} this command is on cooldown for you, try again in{error.retry_after / 3600: .1f} hours.")
 
     @commands.command(name="balance")
-    async def check_balance(self, ctx, member : discord.Member = None):
+    async def check_balance(self, ctx, member : discord.User = None):
         """Check a player's balance."""
 
         if member == None:

@@ -21,7 +21,7 @@ class Inventory(commands.Cog):
         self.bot = bot
     
     @commands.command(name="inventory")
-    async def list_inventory(self, ctx, member : discord.Member = None):
+    async def list_inventory(self, ctx, member : discord.User = None):
         """Lists the entire inventory 25 items at a time."""
 
         if member == None:

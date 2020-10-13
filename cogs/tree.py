@@ -131,7 +131,7 @@ class Tree(commands.Cog):
         await ctx.send(file=im_tree, embed=embed)
     
     @commands.command(name="visit")
-    async def view_other_tree(self, ctx, member : discord.Member, *, input_tree_name):
+    async def view_other_tree(self, ctx, member : discord.User, *, input_tree_name):
         """Displays the tree of input_tree_name of a certain member."""
         
         user = user_col.find_one({"user_id" : member.id})
@@ -224,7 +224,7 @@ class Tree(commands.Cog):
         await ctx.send(file=im_tree, embed=embed)
     
     @commands.command(name="trees")
-    async def list_trees(self, ctx, member : discord.Member = None):
+    async def list_trees(self, ctx, member : discord.User = None):
         """List all the trees of member."""
         
         if member == None:
