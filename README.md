@@ -6,7 +6,7 @@
 Customize three different bonsai trees using parts (base, trunk, and leaves) from the marketplace and setting a background color. All users can upload these parts thier shop and earn money when someone buys from them. Those customers can then replace the parts in their trees with the ones in their inventories whenever they like. There is, however, a max of 15 parts in each user's shop.
 
 [![Support Server](https://img.shields.io/discord/753416400319545374?logo=discord&style=for-the-badge)](https://discord.gg/tNC22WD)
-![Stars](https://img.shields.io/github/stars/xCloudzx/Bonsai-Discord-Bot?style=for-the-badge)
+![Stars](https://img.shields.io/github/stars/xCloudzx/Bonsai-Discord-Bot?logo=github&style=for-the-badge)
 [![MIT License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](https://github.com/xCloudzx/Bonsai-Discord-Bot/blob/master/LICENSE)
 
 ## Links

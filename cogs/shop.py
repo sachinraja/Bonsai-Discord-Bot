@@ -47,6 +47,13 @@ def binary_to_embed(binary):
         im_part = discord.File(fp=image_binary, filename='image.png')
         return im_part
 
+def part_embed(parts, parts_index, username):
+    return discord.Embed(title=f"{parts[parts_index]['type']} Listing {parts_index+1}", color=255)\
+            .set_author(name=username)\
+            .add_field(name="Name", value=parts[parts_index]["name"])\
+            .add_field(name="List Price", value=parts[parts_index]["price"])\
+            .set_image(url="attachment://image.png")
+
 async def check_attachment(ctx, width, height):
     # check for attachment on message
     if len(ctx.message.attachments) == 0:
@@ -124,7 +131,7 @@ class Shop(commands.Cog):
         im_part = binary_to_embed(file_request.content)
 
         embed = discord.Embed(title=f"New {part_type} Listing", color=255)\
-            .set_author(name= ctx.author.name)\
+            .set_author(name= str(ctx.author))\
             .add_field(name="Name", value=part_name)\
             .add_field(name="List Price", value=list_price)\
             .set_image(url="attachment://image.png")
@@ -187,11 +194,7 @@ class Shop(commands.Cog):
 
         part_picture = binary_to_embed(parts[0]["image"])
 
-        embed = discord.Embed(title=f"{parts[0]['type']} Listing 1", color=255)\
-            .set_author(name=member.name)\
-            .add_field(name="Name", value=parts[0]["name"])\
-            .add_field(name="List Price", value=parts[0]["price"])\
-            .set_image(url="attachment://image.png")
+        embed = part_embed(parts, 0, str(member))
         
         shop_message = await ctx.send(file=part_picture, embed=embed)
 
@@ -217,11 +220,7 @@ class Shop(commands.Cog):
                     
                     part_picture = binary_to_embed(parts[current_part]["image"])
 
-                    embed = discord.Embed(title=f"{parts[current_part]['type']} Listing {current_part + 1}", color=255)\
-                        .set_author(name=member.name)\
-                        .add_field(name="Name", value=parts[current_part]["name"])\
-                        .add_field(name="List Price", value=parts[current_part]["price"])\
-                        .set_image(url=f"attachment://image.png")
+                    embed = part_embed(parts, current_part, str(member))
                     
                     await shop_message.delete()
                     shop_message = await ctx.send(file=part_picture, embed=embed)
@@ -234,11 +233,7 @@ class Shop(commands.Cog):
 
                     part_picture = binary_to_embed(parts[current_part]["image"])
 
-                    embed = discord.Embed(title=f"{parts[current_part]['type']} Listing {current_part + 1}", color=255)\
-                        .set_author(name=member.name)\
-                        .add_field(name="Name", value=parts[current_part]["name"])\
-                        .add_field(name="List Price", value=parts[current_part]["price"])\
-                        .set_image(url=f"attachment://image.png")
+                    embed = part_embed(parts, current_part, str(member))
 
                     await shop_message.delete()
                     shop_message = await ctx.send(file=part_picture, embed=embed)
