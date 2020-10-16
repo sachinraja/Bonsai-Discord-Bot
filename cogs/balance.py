@@ -7,6 +7,8 @@ import pymongo
 from PIL import Image
 from random import randint
 
+from utils import default
+from utils.embeds import error_embed, info_embed
 # load environmental variables
 load_dotenv()
 
@@ -16,23 +18,7 @@ client = pymongo.MongoClient(MONGODB_URI)
 db = client["bonsai"]
 user_col = db["users"]
 
-#Create default tree
-default_base = None
-with open("default_base.png", "rb") as imageFile:
-    default_base = imageFile.read()
-
-default_trunk = None
-with open("default_trunk.png", "rb") as imageFile:
-    default_trunk = imageFile.read()
-
-default_leaves = None
-with open("default_leaves.png", "rb") as imageFile:
-    default_leaves = imageFile.read()
-
-default_tree = {"name" : "Default Tree", "base" : {"image" : default_base, "name" : "Default Base", "price" : 0, "creator" : "Cloudfox#6783"}, "trunk" : {"image" : default_trunk, "name" : "Default Trunk", "price" : 0, "creator" : "Cloudfox#6783"}, "leaves" : {"image" : default_leaves, "name" : "Default Leaves", "price" : 0, "creator" : "Cloudfox#6783"}, "background_color" : (0, 0, 255)}
-default_trees = [default_tree]
-
-default_user = {"user_id" : "", "trees" : default_trees, "balance" : 200, "inventory" : [], "parts" : []}
+default_tree, default_user, valid_parts = default.defaults()
 
 class Balance(commands.Cog):
 
@@ -56,7 +42,7 @@ class Balance(commands.Cog):
 
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
-        await ctx.send(f"Added ${reward} to {ctx.author}'s balance! {ctx.author} now have ${user['balance']}.")
+        await ctx.send(embed=info_embed(ctx.author, f"Added ${reward} to your balance! Your new balance is ${user['balance']}."))
 
     @daily_reward.error
     async def daily_reward_error(self, ctx, error):
@@ -65,7 +51,7 @@ class Balance(commands.Cog):
         # error message if the command is on cooldown still
         if isinstance(error, commands.CommandOnCooldown):
             # time left on cooldown converted from seconds to hours
-            await ctx.send(f"{ctx.author} this command is on cooldown for you, try again in{error.retry_after / 3600: .1f} hours.")
+            await ctx.send(embed=error_embed(ctx.author, f"This command is on cooldown, try again in{error.retry_after / 3600: .1f} hours."))
 
     @commands.command(name="balance")
     async def check_balance(self, ctx, member : discord.User = None):
@@ -77,16 +63,20 @@ class Balance(commands.Cog):
         user = user_col.find_one({"user_id" : member.id})
         
         if user == None:
-            await ctx.send(f"{member} does not have any trees.")
+            await ctx.send(embed=error_embed(ctx.author, f"{member} does not have a balance yet."))
             return
         
-        await ctx.send(f"{member} has ${user['balance']}.")
+        await ctx.send(embed=info_embed(ctx.author, f"{member} has ${user['balance']}."))
 
     @commands.command(name="top")
     async def find_top_balance(self, ctx):
-        cursor = user_col.find({}).sort([("balance", pymongo.DESCENDING)]).limit(10)
+        cursor = user_col.find({}, {"_id" : 0, "user_id" : 1, "balance" : 1}).sort([("balance", pymongo.DESCENDING)]).limit(10)
 
         top_balances = list(cursor)
+
+        author_balance = user_col.find_one({"user_id" : ctx.author.id}, {"_id" : 0, "balance" : 1})["balance"]
+        
+        author_position = user_col.find({"balance" : {"$gt" : author_balance}}).count()
 
         embed = discord.Embed(title="Top Balances", color=16776960)
         for i, user in enumerate(top_balances):
@@ -94,8 +84,8 @@ class Balance(commands.Cog):
 
             embed = embed.add_field(name="Place", value=i+1)\
                 .add_field(name="Name", value=username)\
-                .add_field(name="Balance", value=user["balance"])
-        
+                .add_field(name="Balance", value=user["balance"])\
+                .set_footer(text=f"{ctx.author}'s Position: {author_position+1}")
         await ctx.send(embed=embed)
 
 def setup(bot):

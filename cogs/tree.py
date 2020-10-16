@@ -6,6 +6,11 @@ from io import BytesIO
 import pymongo
 from PIL import Image
 
+from utils import default
+from utils.find import find_tree, find_tree_index
+from utils.image import create_tree_image
+from utils.embeds import tree_embed, error_embed, info_embed
+
 # load environmental variables
 load_dotenv()
 
@@ -15,92 +20,7 @@ client = pymongo.MongoClient(MONGODB_URI)
 db = client["bonsai"]
 user_col = db["users"]
 
-#Create default tree
-default_base = None
-with open("default_base.png", "rb") as imageFile:
-    default_base = imageFile.read()
-
-default_trunk = None
-with open("default_trunk.png", "rb") as imageFile:
-    default_trunk = imageFile.read()
-
-default_leaves = None
-with open("default_leaves.png", "rb") as imageFile:
-    default_leaves = imageFile.read()
-
-default_tree = {"name" : "Default Tree", "base" : {"image" : default_base, "name" : "Default Base", "price" : 0, "creator" : "Cloudfox#6783"}, "trunk" : {"image" : default_trunk, "name" : "Default Trunk", "price" : 0, "creator" : "Cloudfox#6783"}, "leaves" : {"image" : default_leaves, "name" : "Default Leaves", "price" : 0, "creator" : "Cloudfox#6783"}, "background_color" : (0, 0, 255)}
-default_trees = [default_tree]
-
-default_user = {"user_id" : "", "trees" : default_trees, "balance" : 200, "inventory" : [], "parts" : []}
-
-valid_parts = ("base", "trunk", "leaves")
-
-def find_tree(user, input_tree_name):
-    """Loop over trees and find one based on the name. Return tree."""
-
-    tree_to_display = None
-    tree_name = input_tree_name.lower()
-
-    for tree in user["trees"]:
-        if tree["name"].lower() == tree_name:
-            tree_to_display = tree
-            break
-    
-    if tree_to_display == None:
-        return None
-    
-    return tree_to_display
-
-def find_tree_index(user, input_tree_name):
-    """Loop over trees and find one based on the name. Return tree index."""
-
-    tree_to_display = None
-    tree_name = input_tree_name.lower()
-
-    for i, tree in enumerate(user["trees"]):
-        if tree["name"].lower() == tree_name:
-            tree_to_display = tree
-            break
-    
-    if tree_to_display == None:
-        return None
-    
-    return i
-
-def create_tree_image(user, tree_to_display):
-    """Turns byte data into an image."""
-    
-    # save with BytesIO and then paste to image
-    base_image = Image.open(BytesIO(tree_to_display["base"]["image"]))
-    trunk_image = Image.open(BytesIO(tree_to_display["trunk"]["image"]))
-    leaves_image = Image.open(BytesIO(tree_to_display["leaves"]["image"]))
-    
-    tree_image = Image.new("RGB", (15, 15), tuple(tree_to_display["background_color"]))
-    tree_image.paste(base_image, (0, 12), mask=base_image)
-    tree_image.paste(trunk_image, mask=trunk_image)
-    tree_image.paste(leaves_image, mask=leaves_image)
-    
-    # resize tree so user can see it
-    tree_image = tree_image.resize((tree_image.size[0] * 10, tree_image.size[1] * 10), resample=Image.NEAREST)
-
-    # save with BytesIO to send as embed in discord
-    with BytesIO() as image_binary:
-        tree_image.save(image_binary, "PNG")
-        image_binary.seek(0)
-        im_tree = discord.File(fp=image_binary, filename="image.png")
-        return im_tree
-
-def create_tree_embed(user, author_name, tree_to_display):
-    """Creates a generic embed for displaying trees."""
-        
-    embed = discord.Embed(title=tree_to_display["name"], color=25600)\
-        .set_author(name=author_name)\
-        .add_field(name="Base", value=f"{tree_to_display['base']['creator']}'s {tree_to_display['base']['name']}")\
-        .add_field(name="Trunk", value=f"{tree_to_display['trunk']['creator']}'s {tree_to_display['trunk']['name']}")\
-        .add_field(name="Leaves", value=f"{tree_to_display['leaves']['creator']}'s {tree_to_display['leaves']['name']}")\
-        .set_image(url="attachment://image.png")
-
-    return embed
+default_tree, default_user, valid_parts = default.defaults()
 
 class Tree(commands.Cog):
     """Commands related to creating trees."""
@@ -122,11 +42,11 @@ class Tree(commands.Cog):
         tree_to_display = find_tree(user, input_tree_name)
             
         if tree_to_display == None:
-            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
+            await ctx.send(embed=error_embed(ctx.author, f"You do not have a tree with the name {input_tree_name}."))
             return
 
         im_tree = create_tree_image(user, tree_to_display)
-        embed = create_tree_embed(user, ctx.author.name, tree_to_display)
+        embed = tree_embed(user, ctx.author, tree_to_display)
 
         await ctx.send(file=im_tree, embed=embed)
     
@@ -137,17 +57,17 @@ class Tree(commands.Cog):
         user = user_col.find_one({"user_id" : member.id})
         
         if user == None:
-            await ctx.send(f"{member} does not have any trees.")
+            await ctx.send(embed=error_embed(ctx.author, f"{member} does not have any trees."))
             return
 
         tree_to_display = find_tree(user, input_tree_name)
             
         if tree_to_display == None:
-            await ctx.send(f"{member} does not have a tree with the name {input_tree_name}.")
+            await ctx.send(embed=error_embed(ctx.author, f"You do not have a tree with the name {input_tree_name}."))
             return
 
         im_tree = create_tree_image(user, tree_to_display)
-        embed = create_tree_embed(user, ctx.author.name, tree_to_display)
+        embed = tree_embed(user, member, tree_to_display)
 
         await ctx.send(file=im_tree, embed=embed)
 
@@ -163,15 +83,15 @@ class Tree(commands.Cog):
             user_col.insert_one(user)
         
         if len(input_tree_name) > 50:
-            await ctx.send(f"{ctx.author}, Tree Name cannot be over 50 characters long.")
+            await ctx.send(embed=error_embed(ctx.author, "Tree Name cannot be over 50 characters long."))
             return
         
         if len(user["trees"]) >= 3:
-            await ctx.send(f"{ctx.author} is already at the max number of trees! To reset a tree, use the reset [Tree Name] command. To delete a tree, use the delete [Tree Name] command.")
+            await ctx.send(embed=error_embed(ctx.author, "You are already at the max number of trees! To reset a tree, use the reset [Tree Name] command. To delete a tree, use the delete [Tree Name] command."))
             return
         
         if find_tree(user, input_tree_name) != None:
-            await ctx.send(f"{ctx.author}, a tree with the name {input_tree_name} already exists.")
+            await ctx.send(embed=error_embed(ctx.author, f"A tree with the name {input_tree_name} already exists."))
             return
         
         new_tree = default_tree.copy()
@@ -183,11 +103,11 @@ class Tree(commands.Cog):
         tree_to_display = find_tree(user, input_tree_name)
             
         if tree_to_display == None:
-            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
+            await ctx.send(embed=error_embed(ctx.author, f"You do not have a tree with the name {input_tree_name}."))
             return
 
         im_tree = create_tree_image(user, tree_to_display)
-        embed = create_tree_embed(user, ctx.author.name, tree_to_display)
+        embed = tree_embed(user, ctx.author, tree_to_display)
         
         await ctx.send(file=im_tree, embed=embed)
 
@@ -205,7 +125,7 @@ class Tree(commands.Cog):
         tree_index = find_tree_index(user, input_tree_name)
 
         if tree_index == None:
-            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
+            await ctx.send(embed=error_embed(ctx.author, f"You do not have a tree with the name {input_tree_name}."))
             return
 
         # Reset tree and update in db
@@ -219,7 +139,7 @@ class Tree(commands.Cog):
         tree_to_display = find_tree(user, input_tree_name)
 
         im_tree = create_tree_image(user, tree_to_display)
-        embed = create_tree_embed(user, ctx.author.name, tree_to_display)
+        embed = tree_embed(user, ctx.author, tree_to_display)
         
         await ctx.send(file=im_tree, embed=embed)
     
@@ -233,7 +153,7 @@ class Tree(commands.Cog):
         user = user_col.find_one({"user_id" : member.id})
         
         if user == None:
-            await ctx.send(f"{member} has no trees.")
+            await ctx.send(embed=error_embed(ctx.author, f"{member} has no trees."))
             return
         
         embed = discord.Embed(title=f"{member}'s Trees", color=0o05300)
@@ -251,23 +171,23 @@ class Tree(commands.Cog):
         user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
-            await ctx.send(f"There is no part in {ctx.author}'s inventory at #{input_inventory_num}.")
+            await ctx.send(embed=error_embed(ctx.author, f"There is no part in your inventory at #{input_inventory_num}."))
             return
         
         inventory_num = input_inventory_num - 1
 
         if input_inventory_num <= 0:
-            await ctx.send(f"{ctx.author}, inventory numbers must be over 0.")
+            await ctx.send(embed=error_embed(ctx.author, "Inventory numbers must be over 0."))
             return
         
         elif len(user["inventory"]) - 1 < inventory_num:
-            await ctx.send(f"{ctx.author}'s inventory only goes up to {len(user['inventory'])}, #{input_inventory_num} was entered.")
+            await ctx.send(embed=error_embed(ctx.author, f"Your inventory only goes up to {len(user['inventory'])}, but #{input_inventory_num} was entered."))
             return
         
         tree_index = find_tree_index(user, input_tree_name)
         
         if tree_index == None:
-            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
+            await ctx.send(embed=error_embed(ctx.author, f"You do not have a tree with the name {input_tree_name}."))
             return
         
         # get new part from user
@@ -289,7 +209,7 @@ class Tree(commands.Cog):
         tree_to_display = find_tree(user, input_tree_name)
 
         im_tree = create_tree_image(user, tree_to_display)
-        embed = create_tree_embed(user, ctx.author.name, tree_to_display)
+        embed = tree_embed(user, ctx.author, tree_to_display)
 
         await ctx.send(file=im_tree, embed=embed)
 
@@ -307,7 +227,7 @@ class Tree(commands.Cog):
         tree_index = find_tree_index(user, input_tree_name)
 
         if tree_index == None:
-            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
+            await ctx.send(embed=error_embed(ctx.author, f"You do not have a tree with the name {input_tree_name}."))
             return
 
         # convert to rgb
@@ -316,7 +236,7 @@ class Tree(commands.Cog):
             user["trees"][tree_index]["background_color"] = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
         
         except:
-            await ctx.send(f"{ctx.author}, {hex_code} is not valid.")
+            await ctx.send(embed=error_embed(ctx.author, f"{hex_code} is not valid."))
             return
         
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
@@ -324,7 +244,7 @@ class Tree(commands.Cog):
         tree_to_display = find_tree(user, input_tree_name)
 
         im_tree = create_tree_image(user, tree_to_display)
-        embed = create_tree_embed(user, ctx.author.name, tree_to_display)
+        embed = tree_embed(user, ctx.author, tree_to_display)
         
         await ctx.send(file=im_tree, embed=embed)
     
@@ -333,7 +253,7 @@ class Tree(commands.Cog):
         """Rename tree of input_tree_name."""
         
         if len(new_name) > 50:
-            await ctx.send(f"{ctx.author}, Tree Name cannot be over 50 characters long.")
+            await ctx.send(embed=error_embed(ctx.author, "Tree Name cannot be over 50 characters long."))
             return
 
         user = user_col.find_one({"user_id" : ctx.author.id})
@@ -346,8 +266,8 @@ class Tree(commands.Cog):
         tree_index = find_tree_index(user, input_tree_name)
 
         if tree_index == None:
-            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
-            return
+           await ctx.send(embed=error_embed(ctx.author, f"You do not have a tree with the name {input_tree_name}."))
+           return
         
         user["trees"][tree_index]["name"] = new_name
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
@@ -355,7 +275,7 @@ class Tree(commands.Cog):
         tree_to_display = find_tree(user, new_name)
 
         im_tree = create_tree_image(user, tree_to_display)
-        embed = create_tree_embed(user, ctx.author.name, tree_to_display)
+        embed = tree_embed(user, ctx.author, tree_to_display)
         
         await ctx.send(file=im_tree, embed=embed)
     
@@ -371,7 +291,7 @@ class Tree(commands.Cog):
         tree_index = find_tree_index(user, input_tree_name)
 
         if tree_index == None:
-            await ctx.send(f"{ctx.author} does not have a tree with the name {input_tree_name}.")
+            await ctx.send(embed=error_embed(ctx.author, f"You do not have a tree with the name {input_tree_name}."))
             return
 
         # get parts and move to inventory
@@ -393,8 +313,8 @@ class Tree(commands.Cog):
         # delete tree
         user["trees"].pop(tree_index)
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
-
-        await ctx.send(f"Deleted {ctx.author}'s tree {tree_name_output}.")
+        
+        await ctx.send(embed=info_embed(ctx.author, f"Deleted tree {tree_name_output}."))
 
 
 

@@ -3,7 +3,7 @@ from discord.ext import commands
 import logging
 import os
 from dotenv import load_dotenv
-import pymongo  
+import pymongo
 
 # load environmental variables
 load_dotenv()
@@ -53,7 +53,7 @@ async def help_message(ctx):
         .add_field(name="Argument Definitions", value="Part Type : base, trunk, or leaves.\nMember=optional : If you do not input a member here, it will default to yourself.")\
         .add_field(name="Prefix", value="The default prefix is `b!`. You can change this with the prefix command. You can also call commands by mentioning the bot.")\
         .add_field(name="about", value="Displays a general description of the bot as well as other useful information about it.", inline=False)\
-        .add_field(name="balance [Member=optional]", value="Shows your or another user's balance.", inline=False)\
+        .add_field(name="balance [Member=optional]", value="Shows your or anoth     er user's balance.", inline=False)\
         .add_field(name="buy [Part Name] [Member=optional]", value="Buy part Part Name from Member.", inline=False)\
         .add_field(name="color [Color Hex Code] [Tree Name]", value="Replace the background color of tree Tree Name.", inline=False)\
         .add_field(name="clearinventory", value="Removes all parts from your inventory.", inline=False)\

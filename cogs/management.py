@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import os
 import pymongo
 
+from utils.embeds import error_embed
+
 # load environmental variables
 load_dotenv()
 
@@ -27,12 +29,12 @@ class Management(commands.Cog):
 
         # checks
         if len(prefixes) > 3:
-            await ctx.send(f"{ctx.author}, only 3 prefixes can be entered.")
+            await ctx.send(embed=error_embed(ctx.author, "Only 3 prefixes can be entered."))
             return
 
         for prefix in prefixes:
             if len(prefix) > 10:
-                await ctx.send(f"{ctx.author}, {prefix} is over the 10 character limit.")
+                await ctx.send(embed=error_embed(ctx.author, f"`{prefix}` is over the 10 character limit."))
                 return
         
         guild = guild_col.find_one({"guild_id" : ctx.guild.id})

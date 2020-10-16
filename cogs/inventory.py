@@ -8,6 +8,9 @@ from PIL import Image
 import asyncio
 from math import ceil
 
+from utils.image import binary_to_file
+from utils.embeds import inventory_part_embed, error_embed, info_embed
+ 
 # load environmental variables
 load_dotenv()
 
@@ -16,22 +19,6 @@ MONGODB_URI = os.environ["MONGODB_URI"]
 client = pymongo.MongoClient(MONGODB_URI)
 db = client["bonsai"]
 user_col = db["users"]
-
-def binary_to_embed(binary):
-    part_image = Image.open(BytesIO(binary))
-    part_image = part_image.resize((part_image.size[0] * 10, part_image.size[1] * 10), Image.NEAREST)
-
-    with BytesIO() as image_binary:
-        part_image.save(image_binary, 'PNG')
-        image_binary.seek(0)
-        im_part = discord.File(fp=image_binary, filename='image.png')
-        return im_part
-
-def inventory_part_embed(part, username):
-    return discord.Embed(title=f"{part['type']}", color=255)\
-            .set_author(name=username)\
-            .add_field(name="Name", value=part["name"])\
-            .set_image(url="attachment://image.png")
 
 class Inventory(commands.Cog):
     
@@ -45,7 +32,7 @@ class Inventory(commands.Cog):
         user = user_col.find_one({"user_id" : ctx.author.id})
 
         if user == None or len(user["inventory"]) == 0:
-            await ctx.send(f"{ctx.author} has no parts in their inventory.")
+            await ctx.send(embed=error_embed(ctx.author, "You have no parts in your inventory."))
             return
 
         # information on specific part
@@ -55,15 +42,15 @@ class Inventory(commands.Cog):
             
             # check for proper inventory number
             if input_inventory_num <= 0:
-                await ctx.send(f"{ctx.author}, inventory numbers must be over 0.")
+                await ctx.send(embed=error_embed(ctx.author, "Inventory numbers must be over 0."))
                 return
             
             elif len(user["inventory"]) - 1 < inventory_num:
-                await ctx.send(f"{ctx.author}'s inventory only goes up to {len(user['inventory'])}, #{input_inventory_num} was entered.")
+                await ctx.send(embed=error_embed(ctx.author, f"Your inventory only goes up to {len(user['inventory'])}, but #{input_inventory_num} was entered."))
                 return
             
             inventory_part = user["inventory"][inventory_num]
-            part_picture = binary_to_embed(inventory_part["image"])
+            part_picture = binary_to_file(inventory_part["image"])
             embed = inventory_part_embed(inventory_part, inventory_part["creator"])
 
             await ctx.send(file=part_picture, embed=embed)
@@ -71,9 +58,13 @@ class Inventory(commands.Cog):
 
         embed = discord.Embed(title=f"{ctx.author}'s Inventory", color=255)
         
+        total_part_lists = ceil(len(user["inventory"]) / 25)
+
         i = 1
         for part in user["inventory"][:26]:
-            embed = embed.add_field(name=part["type"], value=f"{i} : {part['creator']}'s {part['name']}", inline=False)
+            embed = embed.add_field(name=part["type"], value=f"{i} : {part['creator']}'s {part['name']}", inline=False)\
+                .set_footer(text=f"Page 1 / {total_part_lists}")
+
 
             i += 1
 
@@ -89,7 +80,6 @@ class Inventory(commands.Cog):
         def check(reaction, user):
             return reaction.message.id == inventory_message.id and user.id == ctx.author.id and str(reaction.emoji) in ["⬅️", "➡️"]
 
-        total_part_lists = ceil(len(user["inventory"]) / 25)
         current_part_list = 1
 
         while True:
@@ -103,7 +93,8 @@ class Inventory(commands.Cog):
                     inventory_index_first = (current_part_list - 1) * 25
                     inventory_index_last = (current_part_list * 25) + 1
 
-                    embed = discord.Embed(title=f"{ctx.author}'s Inventory Page {current_part_list}", color=255)
+                    embed = discord.Embed(title=f"{ctx.author}'s Inventory", color=255)\
+                        .set_footer(text=f"Page {current_part_list} / {total_part_lists}")
                     
                     j = inventory_index_first
                     for part in user["inventory"][inventory_index_first:inventory_index_last]:
@@ -119,7 +110,8 @@ class Inventory(commands.Cog):
                     inventory_index_first = (current_part_list - 1) * 25
                     inventory_index_last = (current_part_list * 25) + 1
                     
-                    embed = discord.Embed(title=f"{ctx.author}'s Inventory Page {current_part_list}", color=255)
+                    embed = discord.Embed(title=f"{ctx.author}'s Inventory", color=255)\
+                        .set_footer(text=f"Page {current_part_list} / {total_part_lists}")
                     
                     j = inventory_index_first
                     for part in user["inventory"][inventory_index_first:inventory_index_last]:
@@ -139,24 +131,24 @@ class Inventory(commands.Cog):
         user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
-            await ctx.send(f"There is no part in {ctx.author}'s inventory at #{input_inventory_num}.")
+            await ctx.send(embed=error_embed(ctx.author, f"There is no part in your inventory at #{input_inventory_num}."))
             return
         
         inventory_num = input_inventory_num - 1
 
         # check for proper inventory number
         if input_inventory_num <= 0:
-            await ctx.send(f"{ctx.author}, inventory numbers must be over 0.")
+            await ctx.send(embed=error_embed(ctx.author, "Inventory numbers must be over 0."))
             return
         
         elif len(user["inventory"]) - 1 < inventory_num:
-            await ctx.send(f"{ctx.author}'s inventory only goes up to {len(user['inventory'])}, #{input_inventory_num} was entered.")
+            await ctx.send(embed=error_embed(ctx.author, f"Your inventory only goes up to {len(user['inventory'])}, but #{input_inventory_num} was entered."))
             return
         
         user["inventory"].pop(inventory_num)
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
-        await ctx.send(f"{ctx.author}'s part at #{input_inventory_num} has been removed.")
+        await ctx.send(embed=info_embed(ctx.author, f"Part at #{input_inventory_num} has been removed."))
 
     @commands.command(name="clearinventory")
     async def clear_inventory(self, ctx):
@@ -165,13 +157,13 @@ class Inventory(commands.Cog):
         user = user_col.find_one({"user_id" : ctx.author.id})
         
         if user == None:
-            await ctx.send(f"Cleared {ctx.author}'s inventory.")
+            await ctx.send(embed=info_embed(ctx.author, "Cleared your inventory."))
             return
 
         user["inventory"].clear()
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
-        await ctx.send(f"Cleared {ctx.author}'s inventory.")
+        await ctx.send(embed=info_embed(ctx.author, "Cleared your inventory."))
 
 def setup(bot):
     bot.add_cog(Inventory(bot))
