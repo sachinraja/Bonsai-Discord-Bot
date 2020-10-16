@@ -161,7 +161,7 @@ class Shop(commands.Cog):
 
         while True:
             try:
-                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=300)
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60)
 
                 # check for arrow reactions
                 if str(reaction.emoji) == "⬅️" and current_part > 1:
