@@ -15,7 +15,7 @@ from utils.embeds import tree_embed, error_embed, info_embed
 load_dotenv()
 
 # MongoDB
-MONGO_URI = os.environ["MONGODB_URI"]
+MONGO_URI = os.environ["MONGO_URI"]
 client = pymongo.MongoClient(MONGO_URI)
 db = client["bonsai"]
 user_col = db["users"]
