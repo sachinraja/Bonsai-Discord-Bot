@@ -9,8 +9,8 @@ import pymongo
 load_dotenv()
 
 # MongoDB
-MONGODB_URI = os.environ["MONGODB_URI"]
-client = pymongo.MongoClient(MONGODB_URI)
+MONGO_URI = os.environ["MONGO_URI"]
+client = pymongo.MongoClient(MONGO_URI)
 db = client["bonsai"]
 guild_col = db["guilds"]
 

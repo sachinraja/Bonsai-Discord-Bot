@@ -17,8 +17,8 @@ from utils.checks import check_attachment
 load_dotenv()
 
 # MongoDB
-MONGODB_URI = os.environ["MONGODB_URI"]
-client = pymongo.MongoClient(MONGODB_URI)
+MONGO_URI = os.environ["MONGO_URI"]
+client = pymongo.MongoClient(MONGO_URI)
 db = client["bonsai"]
 user_col = db["users"]
 
