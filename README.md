@@ -25,8 +25,8 @@ Running your own instance of this bot is not recommended, it is more preferable 
 3. Create a MongoDB database. You can either use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or [download a database](https://www.mongodb.com/try/download/community).
 4. Open the folder and create a .env file. Enter:
     ```
-    TOKEN = Discord bot # Go to https://discord.com/developers/applications/ and click on your bot to get it.
-    MONGODB_URI = Connection to MongoDB database # Format: mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]].
+    BONSAI_TOKEN = Discord bot # Go to https://discord.com/developers/applications/ and click on your bot to get it.
+    MONGO_URI = Connection to MongoDB database # Format: mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]].
     ```
     Go [here](https://docs.mongodb.com/manual/reference/connection-string) for more information on your connection string for `MONGODB_URI`.
 5. Run the bot: `python bot.py`.

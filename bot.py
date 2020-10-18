@@ -14,7 +14,7 @@ client = pymongo.MongoClient(MONGO_URI)
 db = client["bonsai"]
 guild_col = db["guilds"]
 
-TOKEN = os.environ["TOKEN"]
+TOKEN = os.environ["BONSAI_TOKEN"]
 
 # logging
 logger = logging.getLogger("discord")
