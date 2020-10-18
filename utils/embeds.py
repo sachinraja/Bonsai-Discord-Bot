@@ -23,7 +23,7 @@ def shop_part_embed(username, parts, current_part, total_parts):
     
     part_index = current_part - 1
 
-    return discord.Embed(title=f"{parts[part_index]['type']} Listing {part_index+1}", color=255)\
+    return discord.Embed(color=255)\
             .set_author(name=username)\
             .add_field(name="Name", value=parts[part_index]["name"])\
             .add_field(name="List Price", value=parts[part_index]["price"])\

@@ -43,17 +43,27 @@ initial_extensions = ["cogs.tree", "cogs.shop", "cogs.inventory", "cogs.balance"
 
 @bot.event
 async def on_ready():
+    # attempt to load all initial cogs for bot
+    for extension in initial_extensions:
+        try:
+            bot.load_extension(extension)
+            print(f"Loaded extension {extension}.")
+        
+        except:
+            print(f"Failed to load extension {extension}.")
+
     print(f"Logged in as {bot.user}\n{'-' * 20}\n{bot.user.id}")
 
 @bot.command(name="help")
 async def help_message(ctx):
     """Sends a list of all the commands and their usage."""
-
+    
     embed = discord.Embed(title="Help - List of Commands", color=65280)\
         .add_field(name="Argument Definitions", value="Part Type : base, trunk, or leaves.\nMember=optional : If you do not input a member here, it will default to yourself.")\
         .add_field(name="Prefix", value="The default prefix is `b!`. You can change this with the prefix command. You can also call commands by mentioning the bot.")\
+        .add_field(name="Get Started", value="Go [here](https://top.gg/bot/743898864926589029) for more information on how to use the bot.")\
         .add_field(name="about", value="Displays a general description of the bot as well as other useful information about it.", inline=False)\
-        .add_field(name="balance [Member=optional]", value="Shows your or anoth     er user's balance.", inline=False)\
+        .add_field(name="balance [Member=optional]", value="Shows your or another user's balance.", inline=False)\
         .add_field(name="buy [Part Name] [Member=optional]", value="Buy part Part Name from Member.", inline=False)\
         .add_field(name="color [Color Hex Code] [Tree Name]", value="Replace the background color of tree Tree Name.", inline=False)\
         .add_field(name="clearinventory", value="Removes all parts from your inventory.", inline=False)\
@@ -89,14 +99,5 @@ async def about_message(ctx):
         .add_field(name="Description", value="Customize a bonsai tree using items listed by other users. Mix and match bases, trunks, and leaves.", inline=False)
 
     await ctx.send(embed=embed)
-
-# attempt to load all initial cogs for bot
-for extension in initial_extensions:
-    try:
-        bot.load_extension(extension)
-        print(f"Loaded extension {extension}.")
-    
-    except:
-        print(f"Failed to load extension {extension}.")
 
 bot.run(TOKEN)
