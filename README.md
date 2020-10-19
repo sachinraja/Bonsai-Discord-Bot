@@ -19,7 +19,7 @@ Customize three different bonsai trees using parts (base, trunk, and leaves) fro
 
 ## Self-Hosting
 Running your own instance of this bot is not recommended, it is more preferable that you invite it to your server. No support for self-hosting will be provided.
-
+### Your Computer
 1. Clone the repository for this bot: `git clone https://github.com/xCloudzx/Bonsai-Discord-Bot.git`.
 2. Install required packages: `pip install -r requirements.txt`.
 3. Create a MongoDB database. You can either use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or [download a database](https://www.mongodb.com/try/download/community).
@@ -28,5 +28,16 @@ Running your own instance of this bot is not recommended, it is more preferable 
     BONSAI_TOKEN = Discord bot # Go to https://discord.com/developers/applications/ and click on your bot to get it.
     MONGO_URI = Connection to MongoDB database # Format: mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]].
     ```
-    Go [here](https://docs.mongodb.com/manual/reference/connection-string) for more information on your connection string for `MONGODB_URI`.
+    Go [here](https://docs.mongodb.com/manual/reference/connection-string) for more information on your connection string for `MONGO_URI`.
 5. Run the bot: `python bot.py`.
+
+### AWS EC2 with CodeDeploy and GitHub
+1. Fork this repository on GitHub.
+2. Create an account at [AWS](https://aws.amazon.com/).
+3. Create an AWS EC2 Ubuntu Server 20.04 LTS and [set it up](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html).
+4. [Setup Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-setting-up.html) and [attach an IAM role to your instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) allowing it to read Parameter Store parameters. Create the following parameters:
+  * `BONSAI_TOKEN` - Discord bot token, Go [here](https://discord.com/developers/applications/) and click on your bot to get it. 
+  * `MONGO_URI` - Connection string for MongoDB database. Format: `mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]`. More info [here](https://docs.mongodb.com/manual/reference/connection-string).
+
+5. Create an application and deployment group for [CodeDeploy](https://docs.aws.amazon.com/codedeploy/latest/userguide/getting-started-codedeploy.html).
+6. Create a deployment with your GitHub username, forked repository name, and latest commit id.

@@ -2,17 +2,18 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: Bonsai-Discord-Bot
+    destination: /home/ubuntu/Bonsai-Discord-Bot
 hooks:
-  BeforeInstall:
-    - location: scripts/install_dependencies.sh
-      timeout: 300
-      runas: root
   AfterInstall:
     - location: scripts/load_env_variables.sh
       timeout: 300
-      runas: root
+    - location: scripts/install_dependencies.sh
+      timeout: 300
   ApplicationStart:
     - location: scripts/application_start.sh
       timeout: 300
-      runas: root
+      runas: ubuntu
+  ApplicationStop:
+    - location: scripts/application_stop.sh
+      timeout: 300
+      runas: ubuntu
