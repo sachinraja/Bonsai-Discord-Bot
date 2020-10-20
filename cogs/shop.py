@@ -190,6 +190,8 @@ class Shop(commands.Cog):
                     await shop_message.add_reaction("➡️")
 
             except asyncio.TimeoutError:
+                await shop_message.clear_reaction("⬅️")
+                await shop_message.clear_reaction("➡️")
                 break
         
     @commands.command(name="buy")

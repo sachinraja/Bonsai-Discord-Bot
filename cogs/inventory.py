@@ -122,6 +122,8 @@ class Inventory(commands.Cog):
                     await inventory_message.remove_reaction(reaction, reaction_user)
 
             except asyncio.TimeoutError:
+                await inventory_message.clear_reaction("⬅️")
+                await inventory_message.clear_reaction("➡️")
                 break
 
     @commands.command(name="removeinventory")

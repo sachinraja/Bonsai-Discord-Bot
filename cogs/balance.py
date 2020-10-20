@@ -9,6 +9,7 @@ from random import randint
 
 from utils import default
 from utils.embeds import error_embed, info_embed
+
 # load environmental variables
 load_dotenv()
 
