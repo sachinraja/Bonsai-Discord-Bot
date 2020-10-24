@@ -7,7 +7,7 @@ import pymongo
 from PIL import Image
 from random import randint
 
-from utils.defaults import default_values
+from utils.default import default_values
 from utils.embeds import error_embed, info_embed
 
 # load environmental variables
