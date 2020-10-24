@@ -71,6 +71,9 @@ async def on_guild_join(guild):
 
 @bot.event
 async def on_guild_remove(guild):
+    # remove from db if removed from guild
+    guild_col.find_one_and_delete({"guild_id" : guild.id})
+    
     await bot.change_presence(activity=default_presence(bot))
 
 @bot.command(name="help")
