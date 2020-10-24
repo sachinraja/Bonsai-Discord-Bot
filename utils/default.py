@@ -1,4 +1,6 @@
-def defaults():
+import discord
+
+def default_values():
     """Create default_tree, default_user, and list of valid parts."""
     
     default_base = None
@@ -21,3 +23,7 @@ def defaults():
     valid_parts = ("base", "trunk", "leaves")
 
     return (default_tree, default_user, valid_parts)
+
+def default_presence(bot):
+    """Create default presence."""
+    return discord.Activity(type=discord.ActivityType.watching, name=f"b!help in {len(bot.guilds)} servers")

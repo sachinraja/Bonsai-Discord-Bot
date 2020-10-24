@@ -8,7 +8,7 @@ from PIL import Image
 import requests
 import asyncio
 
-from utils import default
+from utils.default import default_values
 from utils.image import binary_to_file
 from utils.embeds import shop_part_embed, error_embed, info_embed
 from utils.checks import check_attachment
@@ -22,7 +22,7 @@ client = pymongo.MongoClient(MONGO_URI)
 db = client["bonsai"]
 user_col = db["users"]
 
-default_tree, default_user, valid_parts = default.defaults()
+default_tree, default_user, valid_parts = default_values()
 
 class Shop(commands.Cog):
 

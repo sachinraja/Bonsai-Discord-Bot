@@ -5,6 +5,9 @@ import os
 from dotenv import load_dotenv
 import pymongo
 
+from utils.default import default_presence
+from utils.embeds import error_embed
+
 # load environmental variables
 load_dotenv()
 
@@ -54,12 +57,28 @@ async def on_ready():
 
     print(f"Logged in as {bot.user}\n{'-' * 20}\n{bot.user.id}")
 
+    # watching x amount of servers
+    await bot.change_presence(activity=default_presence(bot))
+
+@bot.event
+async def on_command_error(ctx, e):
+    # send error if command fails
+    await ctx.send(embed=error_embed(ctx.author, e))
+
+@bot.event
+async def on_guild_join(guild):
+    await bot.change_presence(activity=default_presence(bot))
+
+@bot.event
+async def on_guild_remove(guild):
+    await bot.change_presence(activity=default_presence(bot))
+
 @bot.command(name="help")
 async def help_message(ctx):
     """Sends a list of all the commands and their usage."""
     
     embed = discord.Embed(title="Help - List of Commands", color=65280)\
-        .add_field(name="Argument Definitions", value="Part Type : base, trunk, or leaves.\nMember=optional : If you do not input a member here, it will default to yourself.")\
+        .add_field(name="Argument Definitions", value="""Part Type : base, trunk, or leaves.\nMember=optional : If you do not input a member here, it will default to yourself. If Member has spaces in it, you must surround it in quotation marks: "Cloud Fox#6783" """)\
         .add_field(name="Prefix", value="The default prefix is `b!`. You can change this with the prefix command. You can also call commands by mentioning the bot.")\
         .add_field(name="Get Started", value="Go [here](https://top.gg/bot/743898864926589029) for more information on how to use the bot.")\
         .add_field(name="about", value="Displays a general description of the bot as well as other useful information about it.", inline=False)\

@@ -6,7 +6,7 @@ from io import BytesIO
 import pymongo
 from PIL import Image
 
-from utils import default
+from utils.default import default_values
 from utils.find import find_tree, find_tree_index
 from utils.image import create_tree_image
 from utils.embeds import tree_embed, error_embed, info_embed
@@ -20,7 +20,7 @@ client = pymongo.MongoClient(MONGO_URI)
 db = client["bonsai"]
 user_col = db["users"]
 
-default_tree, default_user, valid_parts = default.defaults()
+default_tree, default_user, valid_parts = default_values()
 
 class Tree(commands.Cog):
     """Commands related to creating trees."""
@@ -63,7 +63,7 @@ class Tree(commands.Cog):
         tree_to_display = find_tree(user, input_tree_name)
             
         if tree_to_display == None:
-            await ctx.send(embed=error_embed(ctx.author, f"You do not have a tree with the name {input_tree_name}."))
+            await ctx.send(embed=error_embed(ctx.author, f"{member} does not have a tree with the name {input_tree_name}."))
             return
 
         im_tree = create_tree_image(user, tree_to_display)

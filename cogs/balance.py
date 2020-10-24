@@ -7,7 +7,7 @@ import pymongo
 from PIL import Image
 from random import randint
 
-from utils import default
+from utils.defaults import default_values
 from utils.embeds import error_embed, info_embed
 
 # load environmental variables
@@ -19,7 +19,7 @@ client = pymongo.MongoClient(MONGO_URI)
 db = client["bonsai"]
 user_col = db["users"]
 
-default_tree, default_user, valid_parts = default.defaults()
+default_tree, default_user, valid_parts = default_values()
 
 class Balance(commands.Cog):
 
