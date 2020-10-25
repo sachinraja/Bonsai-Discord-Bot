@@ -62,8 +62,22 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, e):
-    # send error if command fails
-    await ctx.send(embed=error_embed(ctx.author, e))
+    # send error if command fails on argument
+    if isinstance(e, commands.BadArgument):
+        await ctx.send(embed=error_embed(ctx.author, e))
+    
+    # check if command is on cooldown and send time remaining if it is.
+    elif isinstance(e, commands.CommandOnCooldown):
+        # send time left in seconds if cooldown is under a minute
+        if e.retry_after <= 60:
+            await ctx.send(embed=error_embed(ctx.author, f"This command is on cooldown, try again in{e.retry_after: .1f} seconds."))
+        
+        # send time left in hours
+        else:
+            await ctx.send(embed=error_embed(ctx.author, f"This command is on cooldown, try again in{e.retry_after / 3600: .1f} hours."))
+
+    else:
+        print(e)
 
 @bot.event
 async def on_guild_join(guild):

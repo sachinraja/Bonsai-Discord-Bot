@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 import pymongo
 
-from utils.embeds import error_embed
+from utils.embeds import error_embed, info_embed
 
 # load environmental variables
 load_dotenv()
@@ -52,6 +52,12 @@ class Management(commands.Cog):
             embed = embed.add_field(name=f"Prefix {i+1}", value=prefix)
         
         await ctx.send(embed=embed)
+    
+    @commands.command(name="ping")
+    async def get_ping(self, ctx):
+        """Send bot's latency."""
+
+        await ctx.send(embed=info_embed(ctx.author, f"Pong: {self.bot.latency: .1f}ms.", "https://media1.tenor.com/images/a3ca17636f365c6b0a0d11fc6a1240b5/tenor.gif"))
 
 def setup(bot):
     bot.add_cog(Management(bot))

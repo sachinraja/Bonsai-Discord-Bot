@@ -45,15 +45,6 @@ class Balance(commands.Cog):
 
         await ctx.send(embed=info_embed(ctx.author, f"Added ${reward} to your balance! Your new balance is ${user['balance']}."))
 
-    @daily_reward.error
-    async def daily_reward_error(self, ctx, error):
-        """Reply with a message telling the length of the cooldown for the daily reward command."""
-        
-        # error message if the command is on cooldown still
-        if isinstance(error, commands.CommandOnCooldown):
-            # time left on cooldown converted from seconds to hours
-            await ctx.send(embed=error_embed(ctx.author, f"This command is on cooldown, try again in{error.retry_after / 3600: .1f} hours."))
-
     @commands.command(name="balance")
     async def check_balance(self, ctx, member : discord.User = None):
         """Check a player's balance."""
@@ -70,6 +61,7 @@ class Balance(commands.Cog):
         await ctx.send(embed=info_embed(ctx.author, f"{member} has ${user['balance']}."))
 
     @commands.command(name="top")
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def find_top_balance(self, ctx):
         cursor = user_col.find({}, {"_id" : 0, "user_id" : 1, "balance" : 1}).sort([("balance", pymongo.DESCENDING)]).limit(10)
 
@@ -79,14 +71,22 @@ class Balance(commands.Cog):
         
         author_position = user_col.find({"balance" : {"$gt" : author_balance}}).count()
 
-        embed = discord.Embed(title="Top Balances", color=16776960)
+        leaderboard = "```prolog\n"
+        
         for i, user in enumerate(top_balances):
-            username = str(self.bot.get_user(user["user_id"]))
+            username = self.bot.get_user(user["user_id"])
+            
+            if username == None:
+                username = "Unknown User"
+            
+            leaderboard += f"{i+1}: {username} | ${user['balance']}\n"
+        
+        leaderboard += "```"
 
-            embed = embed.add_field(name="Place", value=i+1)\
-                .add_field(name="Name", value=username)\
-                .add_field(name="Balance", value=user["balance"])\
-                .set_footer(text=f"{ctx.author}'s Position: {author_position+1}")
+        embed = discord.Embed(title="Top Balances", color=16776960)\
+            .add_field(name="Leaderboard", value=leaderboard)\
+            .set_footer(text=f"{ctx.author}'s Position: {author_position+1}")
+        
         await ctx.send(embed=embed)
 
 def setup(bot):

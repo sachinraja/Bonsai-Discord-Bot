@@ -37,9 +37,13 @@ def error_embed(username, error_message):
         .set_author(name=username)\
         .add_field(name="Error", value=error_message)
 
-def info_embed(username, info_message):
+def info_embed(username, info_message, thumbnail=None):
     """Create embed for informational (output) messages."""
-
-    return discord.Embed(color=8900331)\
+    embed = discord.Embed(color=8900331)\
         .set_author(name=username)\
         .add_field(name="Information", value=info_message)
+    
+    if thumbnail != None:
+        embed = embed.set_thumbnail(url=thumbnail)
+    
+    return embed
