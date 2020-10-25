@@ -71,7 +71,7 @@ class Balance(commands.Cog):
         
         author_position = user_col.find({"balance" : {"$gt" : author_balance}}).count()
 
-        leaderboard = "```prolog\n"
+        leaderboard = "```\n"
         
         for i, user in enumerate(top_balances):
             username = self.bot.get_user(user["user_id"])
