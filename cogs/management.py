@@ -57,7 +57,7 @@ class Management(commands.Cog):
     async def get_ping(self, ctx):
         """Send bot's latency."""
 
-        await ctx.send(embed=info_embed(ctx.author, f"Pong: {self.bot.latency: .1f}ms.", "https://media1.tenor.com/images/a3ca17636f365c6b0a0d11fc6a1240b5/tenor.gif"))
+        await ctx.send(embed=info_embed(ctx.author, f"Pong: {self.bot.latency * 1000: .2f}ms.", "https://media1.tenor.com/images/a3ca17636f365c6b0a0d11fc6a1240b5/tenor.gif"))
 
 def setup(bot):
     bot.add_cog(Management(bot))
