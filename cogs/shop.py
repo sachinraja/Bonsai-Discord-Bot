@@ -2,10 +2,8 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
-from io import BytesIO
 import pymongo
 from PIL import Image
-import requests
 import asyncio
 
 from utils.default import default_values
@@ -70,13 +68,14 @@ class Shop(commands.Cog):
                 await ctx.send(embed=error_embed(ctx.author, f"You have already listed a part with the name {part['name']}."))
                 return
 
-        attachment_url = ctx.message.attachments[0].url
-        file_request = requests.get(attachment_url)
-        parts.append({"image" : file_request.content, "name" : part_name, "type" : part_type, "price" : list_price})
+        # get image file with aiohttp
+        attachment_bytes = await ctx.message.attachments[0].read()
+        
+        parts.append({"image" : attachment_bytes, "name" : part_name, "type" : part_type, "price" : list_price})
 
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
-        im_part = binary_to_file(file_request.content)
+        im_part = binary_to_file(attachment_bytes)
 
         embed = discord.Embed(title=f"New {part_type} Listing", color=255)\
             .set_author(name= str(ctx.author))\
