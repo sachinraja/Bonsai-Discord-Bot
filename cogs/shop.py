@@ -5,7 +5,7 @@ import asyncio
 
 from utils.default import valid_parts, user_col
 from utils.find import find_or_insert_user
-from utils.image import binary_to_file
+from utils.image import bytes_to_file
 from utils.embeds import shop_part_embed, error_embed, info_embed
 from utils.checks import check_attachment
 
@@ -57,7 +57,7 @@ class Shop(commands.Cog):
 
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
 
-        im_part = binary_to_file(attachment_bytes)
+        im_part = bytes_to_file(attachment_bytes)
 
         embed = discord.Embed(title=f"New {part_type} Listing", color=255)\
             .set_author(name= str(ctx.author))\
@@ -117,7 +117,7 @@ class Shop(commands.Cog):
             await ctx.send(embed=error_embed(ctx.author, f"{member} has no parts of that type listed."))
             return
 
-        part_picture = binary_to_file(parts[0]["image"])
+        part_picture = bytes_to_file(parts[0]["image"])
 
         total_parts = len(parts)
 
@@ -144,7 +144,7 @@ class Shop(commands.Cog):
                 if str(reaction.emoji) == "⬅️" and current_part > 1:
                     current_part -= 1
                     
-                    part_picture = binary_to_file(parts[current_part-1]["image"])
+                    part_picture = bytes_to_file(parts[current_part-1]["image"])
 
                     embed = shop_part_embed(member, parts, current_part, total_parts)
                     
@@ -157,7 +157,7 @@ class Shop(commands.Cog):
                     
                     current_part += 1
 
-                    part_picture = binary_to_file(parts[current_part-1]["image"])
+                    part_picture = bytes_to_file(parts[current_part-1]["image"])
 
                     embed = shop_part_embed(member, parts, current_part, total_parts)
 

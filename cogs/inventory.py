@@ -5,7 +5,7 @@ from math import ceil
 
 from utils.default import user_col
 from utils.find import find_or_insert_user
-from utils.image import binary_to_file
+from utils.image import bytes_to_file
 from utils.embeds import inventory_part_embed, error_embed, info_embed
 
 class Inventory(commands.Cog):
@@ -33,7 +33,7 @@ class Inventory(commands.Cog):
                 return
             
             inventory_part = user["inventory"][inventory_num]
-            part_picture = binary_to_file(inventory_part["image"])
+            part_picture = bytes_to_file(inventory_part["image"])
             embed = inventory_part_embed(inventory_part, inventory_part["creator"])
 
             await ctx.send(file=part_picture, embed=embed)
