@@ -1,26 +1,12 @@
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
-import os
-import pymongo
 from PIL import Image
 import asyncio
 
-from utils.default import default_values
+from utils.default import valid_parts, user_col
 from utils.image import binary_to_file
 from utils.embeds import shop_part_embed, error_embed, info_embed
 from utils.checks import check_attachment
-
-# load environmental variables
-load_dotenv()
-
-# MongoDB
-MONGO_URI = os.environ["MONGO_URI"]
-client = pymongo.MongoClient(MONGO_URI)
-db = client["bonsai"]
-user_col = db["users"]
-
-default_tree, default_user, valid_parts = default_values()
 
 class Shop(commands.Cog):
 
@@ -51,11 +37,6 @@ class Shop(commands.Cog):
             return
 
         user = user_col.find_one({"user_id" : ctx.author.id})
-        
-        if user == None:
-            user = default_user.copy()
-            user["user_id"] = ctx.author.id
-            user_col.insert_one(user)
 
         parts = user["parts"]
 
@@ -90,10 +71,6 @@ class Shop(commands.Cog):
         """Delete a listing from the player's shop."""
 
         user = user_col.find_one({"user_id" : ctx.author.id})
-        
-        if user == None:
-            await ctx.send(embed=error_embed(ctx.author, f"You do not have any parts listed."))
-            return
         
         part_for_removal = None
         for i, part in enumerate(user["parts"]):
@@ -198,11 +175,6 @@ class Shop(commands.Cog):
         """Buy a part from a player's shop."""
 
         user = user_col.find_one({"user_id" : ctx.author.id})
-        
-        if user == None:
-            user = default_user.copy()
-            user["user_id"] = ctx.author.id
-            user_col.insert_one(user)
 
         if len(user["inventory"]) >= 100:
             await ctx.send(embed=error_embed(ctx.author, "You have reached the limit of 100 parts in your inventory."))

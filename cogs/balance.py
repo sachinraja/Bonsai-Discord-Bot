@@ -1,25 +1,11 @@
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
-import os
 from io import BytesIO
 import pymongo
-from PIL import Image
 from random import randint
 
-from utils.default import default_values
+from utils.default import default_tree, default_user, valid_parts, user_col
 from utils.embeds import error_embed, info_embed
-
-# load environmental variables
-load_dotenv()
-
-# MongoDB
-MONGO_URI = os.environ["MONGO_URI"]
-client = pymongo.MongoClient(MONGO_URI)
-db = client["bonsai"]
-user_col = db["users"]
-
-default_tree, default_user, valid_parts = default_values()
 
 class Balance(commands.Cog):
 
@@ -32,11 +18,6 @@ class Balance(commands.Cog):
         """Get a random amount of money every 24 hours."""
 
         user = user_col.find_one({"user_id" : ctx.author.id})
-        
-        if user == None:
-            user = default_user.copy()
-            user["user_id"] = ctx.author.id
-            user_col.insert_one(user)
         
         reward = randint(50, 100)
         user["balance"] += reward

@@ -1,19 +1,8 @@
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
-import os
-import pymongo
 
+from utils.default import guild_col
 from utils.embeds import error_embed, info_embed
-
-# load environmental variables
-load_dotenv()
-
-# MongoDB
-MONGO_URI = os.environ["MONGO_URI"]
-client = pymongo.MongoClient(MONGO_URI)
-db = client["bonsai"]
-guild_col = db["guilds"]
 
 class Management(commands.Cog):
 
@@ -23,7 +12,7 @@ class Management(commands.Cog):
     @commands.command(name="prefix")
     @commands.has_permissions(administrator=True)
     async def change_prefix(self, ctx, *, input_prefixes):
-        """Change prefixes on a server."""
+        """Change bot's prefixes in a specific guild."""
 
         prefixes = input_prefixes.split()
 

@@ -1,24 +1,11 @@
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
-import os
-from io import BytesIO
-import pymongo
-from PIL import Image
 import asyncio
 from math import ceil
 
+from utils.default import user_col
 from utils.image import binary_to_file
 from utils.embeds import inventory_part_embed, error_embed, info_embed
- 
-# load environmental variables
-load_dotenv()
-
-# MongoDB
-MONGO_URI = os.environ["MONGO_URI"]
-client = pymongo.MongoClient(MONGO_URI)
-db = client["bonsai"]
-user_col = db["users"]
 
 class Inventory(commands.Cog):
     
@@ -31,13 +18,8 @@ class Inventory(commands.Cog):
         
         user = user_col.find_one({"user_id" : ctx.author.id})
 
-        if user == None or len(user["inventory"]) == 0:
-            await ctx.send(embed=error_embed(ctx.author, "You have no parts in your inventory."))
-            return
-
         # information on specific part
         if input_inventory_num != None:
-
             inventory_num = input_inventory_num - 1
             
             # check for proper inventory number
@@ -132,10 +114,6 @@ class Inventory(commands.Cog):
 
         user = user_col.find_one({"user_id" : ctx.author.id})
         
-        if user == None:
-            await ctx.send(embed=error_embed(ctx.author, f"There is no part in your inventory at #{input_inventory_num}."))
-            return
-        
         inventory_num = input_inventory_num - 1
 
         # check for proper inventory number
@@ -157,13 +135,9 @@ class Inventory(commands.Cog):
         """Deletes all of the parts in the inventory."""
 
         user = user_col.find_one({"user_id" : ctx.author.id})
-        
-        if user == None:
-            await ctx.send(embed=info_embed(ctx.author, "Cleared your inventory."))
-            return
 
         user["inventory"].clear()
-        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : user})
+        user_col.update_one({"user_id" : ctx.author.id}, {"$set" : {"inventory" : []}})
 
         await ctx.send(embed=info_embed(ctx.author, "Cleared your inventory."))
 

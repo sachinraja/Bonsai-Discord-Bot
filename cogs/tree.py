@@ -6,21 +6,10 @@ from io import BytesIO
 import pymongo
 from PIL import Image
 
-from utils.default import default_values
+from utils.default import default_tree, user_col
 from utils.find import find_tree, find_tree_index
 from utils.image import create_tree_image
 from utils.embeds import tree_embed, error_embed, info_embed
-
-# load environmental variables
-load_dotenv()
-
-# MongoDB
-MONGO_URI = os.environ["MONGO_URI"]
-client = pymongo.MongoClient(MONGO_URI)
-db = client["bonsai"]
-user_col = db["users"]
-
-default_tree, default_user, valid_parts = default_values()
 
 class Tree(commands.Cog):
     """Commands related to creating trees."""
@@ -33,11 +22,6 @@ class Tree(commands.Cog):
         """Displays the tree of input_tree_name."""
         
         user = user_col.find_one({"user_id" : ctx.author.id})
-        
-        if user == None:
-            user = default_user.copy()
-            user["user_id"] = ctx.author.id
-            user_col.insert_one(user)
 
         tree_to_display = find_tree(user, input_tree_name)
             
@@ -77,11 +61,6 @@ class Tree(commands.Cog):
 
         user = user_col.find_one({"user_id" : ctx.author.id})
         
-        if user == None:
-            user = default_user.copy()
-            user["user_id"] = ctx.author.id
-            user_col.insert_one(user)
-        
         if len(input_tree_name) > 50:
             await ctx.send(embed=error_embed(ctx.author, "Tree Name cannot be over 50 characters long."))
             return
@@ -116,11 +95,6 @@ class Tree(commands.Cog):
         """Resets the tree of input_tree_name."""
 
         user = user_col.find_one({"user_id" : ctx.author.id})
-        
-        if user == None:
-            user = default_user
-            user["user_id"] = ctx.author.id
-            user_col.insert_one(user)
         
         tree_index = find_tree_index(user, input_tree_name)
 
@@ -170,10 +144,6 @@ class Tree(commands.Cog):
 
         user = user_col.find_one({"user_id" : ctx.author.id})
         
-        if user == None:
-            await ctx.send(embed=error_embed(ctx.author, f"There is no part in your inventory at #{input_inventory_num}."))
-            return
-        
         inventory_num = input_inventory_num - 1
 
         if input_inventory_num <= 0:
@@ -219,11 +189,6 @@ class Tree(commands.Cog):
 
         user = user_col.find_one({"user_id" : ctx.author.id})
         
-        if user == None:
-            user = default_user.copy()
-            user["user_id"] = ctx.author.id
-            user_col.insert_one(user)
-        
         tree_index = find_tree_index(user, input_tree_name)
 
         if tree_index == None:
@@ -258,11 +223,6 @@ class Tree(commands.Cog):
 
         user = user_col.find_one({"user_id" : ctx.author.id})
         
-        if user == None:
-            user = default_user.copy()
-            user["user_id"] = ctx.author.id
-            user_col.insert_one(user)
-        
         tree_index = find_tree_index(user, input_tree_name)
 
         if tree_index == None:
@@ -281,12 +241,9 @@ class Tree(commands.Cog):
     
     @commands.command(name="delete")
     async def delete_tree(self, ctx, *, input_tree_name):
+        """Delete tree of input_tree_name."""
+
         user = user_col.find_one({"user_id" : ctx.author.id})
-        
-        if user == None:
-            user = default_user.copy()
-            user["user_id"] = ctx.author.id
-            user_col.insert_one(user)
         
         tree_index = find_tree_index(user, input_tree_name)
 

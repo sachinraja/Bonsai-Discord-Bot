@@ -5,17 +5,11 @@ import os
 from dotenv import load_dotenv
 import pymongo
 
-from utils.default import default_presence
+from utils.default import default_presence, guild_col
 from utils.embeds import error_embed
 
 # load environmental variables
 load_dotenv()
-
-# MongoDB
-MONGO_URI = os.environ["MONGO_URI"]
-client = pymongo.MongoClient(MONGO_URI)
-db = client["bonsai"]
-guild_col = db["guilds"]
 
 TOKEN = os.environ["BONSAI_TOKEN"]
 
@@ -41,53 +35,22 @@ bot = commands.AutoShardedBot(command_prefix=get_prefix)
 
 bot.remove_command("help")
 
-# all initial cogs for bot
-initial_extensions = ["cogs.tree", "cogs.shop", "cogs.inventory", "cogs.balance", "cogs.management"]
+initial_extensions = ["cogs.tree", "cogs.shop", "cogs.inventory", "cogs.balance", "cogs.management", "cogs.events"]
 
 @bot.event
 async def on_ready():
-    # attempt to load all initial cogs for bot
+    # Attempt to load all initial cogs for bot
     for extension in initial_extensions:
         try:
             bot.load_extension(extension)
             print(f"Loaded extension {extension}.")
-        
-        except:
-            print(f"Failed to load extension {extension}.")
+
+        except Exception as e:
+            print(f"Failed to load extension {extension}: {e}")
 
     print(f"Logged in as {bot.user}\n{'-' * 20}\n{bot.user.id}")
 
     # watching x amount of servers
-    await bot.change_presence(activity=default_presence(bot))
-
-@bot.event
-async def on_command_error(ctx, e):
-    # send error if command fails on argument
-    if isinstance(e, commands.BadArgument):
-        await ctx.send(embed=error_embed(ctx.author, e))
-    
-    # check if command is on cooldown and send time remaining if it is.
-    elif isinstance(e, commands.CommandOnCooldown):
-        # send time left in seconds if cooldown is under a minute
-        if e.retry_after <= 60:
-            await ctx.send(embed=error_embed(ctx.author, f"This command is on cooldown, try again in{e.retry_after: .1f} seconds."))
-        
-        # send time left in hours
-        else:
-            await ctx.send(embed=error_embed(ctx.author, f"This command is on cooldown, try again in{e.retry_after / 3600: .1f} hours."))
-
-    else:
-        print(e)
-
-@bot.event
-async def on_guild_join(guild):
-    await bot.change_presence(activity=default_presence(bot))
-
-@bot.event
-async def on_guild_remove(guild):
-    # remove from db if removed from guild
-    guild_col.find_one_and_delete({"guild_id" : guild.id})
-    
     await bot.change_presence(activity=default_presence(bot))
 
 @bot.command(name="help")
