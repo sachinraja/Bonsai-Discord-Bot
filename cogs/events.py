@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import asyncio
 
 from utils.default import user_col, guild_col, default_user, default_presence
 from utils.embeds import error_embed
@@ -8,16 +9,6 @@ class Events(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-
-    @commands.Cog.listener()
-    async def on_command(self, ctx):
-        # create user in db if there is none
-        user = user_col.find_one({"user_id" : ctx.author.id})
-        
-        if user == None:
-            user = default_user.copy()
-            user["user_id"] = ctx.author.id
-            user_col.insert_one(user)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, e):

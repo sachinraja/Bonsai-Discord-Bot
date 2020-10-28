@@ -4,6 +4,7 @@ import asyncio
 from math import ceil
 
 from utils.default import user_col
+from utils.find import find_or_insert_user
 from utils.image import binary_to_file
 from utils.embeds import inventory_part_embed, error_embed, info_embed
 
@@ -16,7 +17,7 @@ class Inventory(commands.Cog):
     async def list_inventory(self, ctx, input_inventory_num : int = None):
         """Lists the entire inventory 25 items at a time."""
         
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
 
         # information on specific part
         if input_inventory_num != None:
@@ -112,7 +113,7 @@ class Inventory(commands.Cog):
     async def delete_inventory_part(self, ctx, input_inventory_num : int):
         """Delete a part from the inventory."""
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
         
         inventory_num = input_inventory_num - 1
 
@@ -134,7 +135,7 @@ class Inventory(commands.Cog):
     async def clear_inventory(self, ctx):
         """Deletes all of the parts in the inventory."""
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
 
         user["inventory"].clear()
         user_col.update_one({"user_id" : ctx.author.id}, {"$set" : {"inventory" : []}})

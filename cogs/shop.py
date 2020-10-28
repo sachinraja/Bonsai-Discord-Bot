@@ -4,6 +4,7 @@ from PIL import Image
 import asyncio
 
 from utils.default import valid_parts, user_col
+from utils.find import find_or_insert_user
 from utils.image import binary_to_file
 from utils.embeds import shop_part_embed, error_embed, info_embed
 from utils.checks import check_attachment
@@ -36,7 +37,7 @@ class Shop(commands.Cog):
         elif part_type in ["trunk", "leaves"] and await check_attachment(ctx, 15, 12) == False:
             return
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
 
         parts = user["parts"]
 
@@ -70,7 +71,7 @@ class Shop(commands.Cog):
     async def delete_part_listing(self, ctx, part_name):
         """Delete a listing from the player's shop."""
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
         
         part_for_removal = None
         for i, part in enumerate(user["parts"]):
@@ -174,7 +175,7 @@ class Shop(commands.Cog):
     async def buy_part(self, ctx, part_name, member : discord.User = None):
         """Buy a part from a player's shop."""
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
 
         if len(user["inventory"]) >= 100:
             await ctx.send(embed=error_embed(ctx.author, "You have reached the limit of 100 parts in your inventory."))

@@ -18,7 +18,7 @@ with open("default_leaves.png", "rb") as imageFile:
 
 default_tree = {"name" : "Default Tree", "base" : {"image" : default_base, "name" : "Default Base", "price" : 0, "creator" : "Cloudfox#6783"}, "trunk" : {"image" : default_trunk, "name" : "Default Trunk", "price" : 0, "creator" : "Cloudfox#6783"}, "leaves" : {"image" : default_leaves, "name" : "Default Leaves", "price" : 0, "creator" : "Cloudfox#6783"}, "background_color" : (0, 0, 255)}
 default_trees = [default_tree]
-default_user = {"trees" : default_trees, "balance" : 200, "inventory" : [], "parts" : []}
+default_user = {"user_id" : "", "trees" : default_trees, "balance" : 200, "inventory" : [], "parts" : []}
 valid_parts = ("base", "trunk", "leaves")
 
 # load environmental variables

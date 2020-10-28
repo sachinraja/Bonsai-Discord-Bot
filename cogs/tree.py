@@ -7,7 +7,7 @@ import pymongo
 from PIL import Image
 
 from utils.default import default_tree, user_col
-from utils.find import find_tree, find_tree_index
+from utils.find import find_tree, find_tree_index, find_or_insert_user, find_user
 from utils.image import create_tree_image
 from utils.embeds import tree_embed, error_embed, info_embed
 
@@ -21,7 +21,7 @@ class Tree(commands.Cog):
     async def display_tree(self, ctx, *, input_tree_name):
         """Displays the tree of input_tree_name."""
         
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
 
         tree_to_display = find_tree(user, input_tree_name)
             
@@ -38,7 +38,7 @@ class Tree(commands.Cog):
     async def view_other_tree(self, ctx, member : discord.User, *, input_tree_name):
         """Displays the tree of input_tree_name of a certain member."""
         
-        user = user_col.find_one({"user_id" : member.id})
+        user = find_user(member.id)
         
         if user == None:
             await ctx.send(embed=error_embed(ctx.author, f"{member} does not have any trees."))
@@ -59,7 +59,7 @@ class Tree(commands.Cog):
     async def create_tree(self, ctx, *, input_tree_name):
         """Creates a new tree."""
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
         
         if len(input_tree_name) > 50:
             await ctx.send(embed=error_embed(ctx.author, "Tree Name cannot be over 50 characters long."))
@@ -94,7 +94,7 @@ class Tree(commands.Cog):
     async def reset_tree(self, ctx, *, input_tree_name):
         """Resets the tree of input_tree_name."""
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
         
         tree_index = find_tree_index(user, input_tree_name)
 
@@ -124,7 +124,7 @@ class Tree(commands.Cog):
         if member == None:
             member = ctx.author
         
-        user = user_col.find_one({"user_id" : member.id})
+        user = find_user(member.id)
         
         if user == None:
             await ctx.send(embed=error_embed(ctx.author, f"{member} has no trees."))
@@ -142,7 +142,7 @@ class Tree(commands.Cog):
     async def replace_part(self, ctx, input_inventory_num : int, *, input_tree_name):
         """Replaces a part of the tree of input_tree_name with the new input_inventory_num."""
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
         
         inventory_num = input_inventory_num - 1
 
@@ -187,7 +187,7 @@ class Tree(commands.Cog):
     async def change_color(self, ctx, hex_code, *, input_tree_name):
         """Replaces the background color with a new color."""
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
         
         tree_index = find_tree_index(user, input_tree_name)
 
@@ -221,7 +221,7 @@ class Tree(commands.Cog):
             await ctx.send(embed=error_embed(ctx.author, "Tree Name cannot be over 50 characters long."))
             return
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
         
         tree_index = find_tree_index(user, input_tree_name)
 
@@ -243,7 +243,7 @@ class Tree(commands.Cog):
     async def delete_tree(self, ctx, *, input_tree_name):
         """Delete tree of input_tree_name."""
 
-        user = user_col.find_one({"user_id" : ctx.author.id})
+        user = find_or_insert_user(ctx.author.id)
         
         tree_index = find_tree_index(user, input_tree_name)
 
