@@ -1,4 +1,5 @@
 from utils.default import default_user, user_col
+import copy
 
 def find_tree(user, input_tree_name):
     """Loop over trees and find one based on the name. Return tree."""
@@ -46,7 +47,7 @@ def find_or_insert_user(user_id):
     user = user_col.find_one({"user_id" : user_id})
 
     if user == None:
-        user = default_user.copy()
+        user = copy.deepcopy(default_user)
         user["user_id"] = user_id
         user_col.insert_one(user)
 
