@@ -53,7 +53,6 @@ class Balance(commands.Cog):
         top_balances = list(cursor)
 
         self.top_users = [(str(await self.bot.fetch_user(user["user_id"])), user["balance"]) for user in top_balances]
-        print(self.top_users)
         self.last_leaderboard_update = datetime.now()
 
     @commands.command(name="top")

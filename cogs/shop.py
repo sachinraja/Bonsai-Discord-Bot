@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from PIL import Image
-import asyncio
+from asyncio import TimeoutError
 
 from utils.default import valid_parts, user_col
 from utils.find import find_or_insert_user
@@ -166,11 +166,89 @@ class Shop(commands.Cog):
                     await shop_message.add_reaction("⬅️")
                     await shop_message.add_reaction("➡️")
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
+                await shop_message.clear_reaction("⬅️")
+                await shop_message.clear_reaction("➡️")
+                break
+    
+    @commands.command(name="shoprandom")
+    @commands.cooldown(1, 15, commands.BucketType.user)
+    async def shop_random_parts(self, ctx):
+        """View a random part from a player's shop."""
+
+        user = None
+
+        # run up to 50 times
+        for _ in range(50):
+            # get users 5 at a time
+            users = user_col.aggregate([{"$sample" : {"size" : 5}}])
+            
+            # if user has a part, break
+            for possible_user in users:
+                if len(possible_user["parts"]) > 0:
+                    user = possible_user
+                    break
+        
+        parts = user["parts"]
+
+        part_picture = bytes_to_file(parts[0]["image"])
+
+        total_parts = len(parts)
+
+        username = str(await self.bot.fetch_user(user["user_id"]))
+
+        embed = shop_part_embed(username, parts, 1, total_parts)
+        
+        shop_message = await ctx.send(file=part_picture, embed=embed)
+
+        if len(parts) == 1:
+            return
+        
+        await shop_message.add_reaction("⬅️")
+        await shop_message.add_reaction("➡️")
+
+        def check(reaction, user):
+            return reaction.message.id == shop_message.id and user.id == ctx.author.id and str(reaction.emoji) in ["⬅️", "➡️"]
+
+        current_part = 1
+
+        while True:
+            try:
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60)
+
+                # check for arrow reactions
+                if str(reaction.emoji) == "⬅️" and current_part > 1:
+                    current_part -= 1
+                    
+                    part_picture = bytes_to_file(parts[current_part-1]["image"])
+
+                    embed = shop_part_embed(username, parts, current_part, total_parts)
+                    
+                    await shop_message.delete()
+                    shop_message = await ctx.send(file=part_picture, embed=embed)
+                    await shop_message.add_reaction("⬅️")
+                    await shop_message.add_reaction("➡️")
+
+                elif str(reaction.emoji) == "➡️" and current_part < total_parts:
+                    
+                    current_part += 1
+
+                    part_picture = bytes_to_file(parts[current_part-1]["image"])
+
+                    embed = shop_part_embed(username, parts, current_part, total_parts)
+
+                    await shop_message.delete()
+                    shop_message = await ctx.send(file=part_picture, embed=embed)
+                    await shop_message.add_reaction("⬅️")
+                    await shop_message.add_reaction("➡️")
+
+            except TimeoutError:
                 await shop_message.clear_reaction("⬅️")
                 await shop_message.clear_reaction("➡️")
                 break
         
+
+
     @commands.command(name="buy")
     async def buy_part(self, ctx, part_name, member : discord.User = None):
         """Buy a part from a player's shop."""

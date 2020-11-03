@@ -27,6 +27,7 @@ def shop_part_embed(username, parts, current_part, total_parts):
             .set_author(name=username)\
             .add_field(name="Name", value=parts[part_index]["name"])\
             .add_field(name="List Price", value=parts[part_index]["price"])\
+            .add_field(name="Type", value=parts[part_index]["type"])\
             .set_image(url="attachment://image.png")\
             .set_footer(text=f"Page {current_part} / {total_parts}")
 
