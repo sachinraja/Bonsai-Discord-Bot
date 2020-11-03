@@ -20,6 +20,9 @@ handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w"
 handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
 logger.addHandler(handler)
 
+# cogs
+initial_extensions = ["cogs.tree", "cogs.shop", "cogs.inventory", "cogs.balance", "cogs.management", "cogs.events", "cogs.info"]
+
 # prefixes
 prefixes = ["b!"]
 
@@ -31,26 +34,29 @@ async def get_prefix(bot, msg):
     
     return commands.when_mentioned_or(*guild["prefixes"])(bot, msg)
 
-bot = commands.AutoShardedBot(command_prefix=get_prefix)
+class Bot(commands.AutoShardedBot):
+    def __init__(self):
+        super().__init__(command_prefix=get_prefix)
 
-bot.remove_command("help")
+        # remove help command before loading actual one in from cogs
+        self.remove_command("help")
 
-initial_extensions = ["cogs.tree", "cogs.shop", "cogs.inventory", "cogs.balance", "cogs.management", "cogs.events", "cogs.info"]
+        # Attempt to load all initial cogs for bot
+        for extension in initial_extensions:
+            try:
+                self.load_extension(extension)
+                print(f"Loaded extension {extension}.")
 
-@bot.event
-async def on_ready():
-    # Attempt to load all initial cogs for bot
-    for extension in initial_extensions:
-        try:
-            bot.load_extension(extension)
-            print(f"Loaded extension {extension}.")
+            except Exception as e:
+                print(f"Failed to load extension {extension}: {e}")
+            
+    async def on_ready(self):
+        print(f"Logged in as {self.user}\n{'-' * 20}\n{self.user.id}")
 
-        except Exception as e:
-            print(f"Failed to load extension {extension}: {e}")
+        # watching x amount of servers
+        await self.change_presence(activity=default_presence(self))
 
-    print(f"Logged in as {bot.user}\n{'-' * 20}\n{bot.user.id}")
+# create bot
+bot = Bot()
 
-    # watching x amount of servers
-    await bot.change_presence(activity=default_presence(bot))
-
-bot.run(TOKEN)
+bot.run(TOKEN, reconnect=True)
