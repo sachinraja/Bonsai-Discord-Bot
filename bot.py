@@ -38,7 +38,7 @@ class Bot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(command_prefix=get_prefix)
 
-        # remove help command before loading actual one in from cogs
+        # remove help command before loading actual one bin from cogs
         self.remove_command("help")
 
         # Attempt to load all initial cogs for bot

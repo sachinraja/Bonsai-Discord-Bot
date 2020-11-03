@@ -56,7 +56,7 @@ class Balance(commands.Cog):
         self.last_leaderboard_update = datetime.now()
 
     @commands.command(name="top")
-    @commands.cooldown(1, 15, commands.BucketType.user)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def find_top_balance(self, ctx):
         """Send top 10 balances."""
         author = find_or_insert_user(ctx.author.id)
