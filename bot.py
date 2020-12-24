@@ -49,7 +49,7 @@ class Bot(commands.AutoShardedBot):
 
             except Exception as e:
                 print(f"Failed to load extension {extension}: {e}")
-            
+    
     async def on_ready(self):
         print(f"Logged in as {self.user}\n{'-' * 20}\n{self.user.id}")
 
